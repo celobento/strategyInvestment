@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: Strategy Investment System-iT
+  output:
+    ansi:
+      enabled: ALWAYS
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+  jpa:
+    show-sql: true
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+      hibernate.format_sql: true
+
+# setting logs trace -> debug -> info -> warn -> error
+logging:
+  pattern:
+    console: '%clr(%d{dd-MM-yyyy HH:mm:ss}){faint} %clr(%5p) %clr([%t]){faint} %clr(%-40.40logger){cyan} %clr(:){yellow} %m%n'
+  file:
+    name: strategy-app.log
+  level:
+    root: warn
+    br:
+      com:
+        systemit: info
+    org:
+      springframework:
+        web: debug
+
+# removendo status code response genericos
+springdoc:
+  override-with-generic-response: false
+
+# actuator
+management:
+  server:
+    port: 9090
+  endpoints:
+    web:
+      exposure:
+        include: logfile, health, metrics
+
+# production
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+    jpa:
+      show-sql: false
