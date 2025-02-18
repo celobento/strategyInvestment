@@ -46,4 +46,9 @@ public class CategoryService {
         validator.validateUpdateCategory(category);
         return categoryRepository.save(category);
     }
+
+    public void delete(Integer id) {
+        Optional<Category> categoryOptional = validator.validateDeleteCategory(id);
+        categoryRepository.delete(categoryOptional.get());
+    }
 }

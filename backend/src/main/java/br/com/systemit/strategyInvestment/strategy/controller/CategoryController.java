@@ -72,4 +72,12 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.OK).body(category);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Object> delete(
+            @PathVariable("id") Integer id){
+
+        categoryService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

@@ -28,13 +28,19 @@ public class CategoryValidator {
     }
 
     public void validateUpdateCategory(Category category) {
-        validateIdExists(category);
+        validateIdExists(category.getId());
     }
 
-    private void validateIdExists(Category category) {
-        Optional<Category> categoryOptional = categoryRepository.findById(category.getId());
+    private void validateIdExists(Integer id) {
+        Optional<Category> categoryOptional = categoryRepository.findById(id);
         if(categoryOptional.isEmpty()){
             throw new StrategyInvestmentException(ProcessingResultConstant.ERROR_NOT_FOUND);
         }
+    }
+
+    public Optional<Category> validateDeleteCategory(Integer id) {
+        Optional<Category> categoryOptional = categoryRepository.findById(id);
+        validateIdExists(id);
+        return categoryOptional;
     }
 }
