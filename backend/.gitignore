@@ -33,4 +33,4 @@ build/
 .vscode/
 
 ### app ###
-strategy-app.log
+strategy-app.log*
