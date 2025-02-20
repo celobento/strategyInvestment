@@ -22,11 +22,14 @@ CREATE TABLE strategy.tb_sector (
     description VARCHAR(250)
 );
 
+insert into strategy.tb_sector (name, description) values ('Retail', 'Retail');
+insert into strategy.tb_sector (name, description) values ('Logistica', 'Logistica');
 insert into strategy.tb_sector (name, description) values ('Financeiro e Outros', 'Financeiro');
 insert into strategy.tb_sector (name, description) values ('Materiais Básicos', 'MB');
 insert into strategy.tb_sector (name, description) values ('Utilidade Pública', 'CA');
-insert into strategy.tb_sector (name, description) values ('Retail', 'Retail');
-insert into strategy.tb_sector (name, description) values ('Logistica', 'Logistica');
+insert into strategy.tb_sector (name, description) values ('Fundo Misto', 'Fundo Misto');
+insert into strategy.tb_sector (name, description) values ('Fundo de Papel', 'Fundo de Papel');
+insert into strategy.tb_sector (name, description) values ('Fundo de Tijolo', 'Fundo de Tijolo');
 
 select * from strategy.tb_sector;
 
@@ -44,6 +47,8 @@ insert into strategy.tb_country (name, acronym) values ('Canadá', 'CA');
 
 select * from strategy.tb_country;
 
+drop table strategy.tb_asset;
+
 CREATE TABLE strategy.tb_asset (
     id serial PRIMARY KEY NOT NULL,
     name VARCHAR(200) NOT NULL,
@@ -52,9 +57,11 @@ CREATE TABLE strategy.tb_asset (
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     sector_id BIGINT,
+    segment_id BIGINT,
     category_id BIGINT,
     country_id BIGINT,
     FOREIGN KEY (sector_id) REFERENCES strategy.tb_sector(id),
+    FOREIGN KEY (segment_id) REFERENCES strategy.tb_segment(id),
     FOREIGN KEY (category_id) REFERENCES strategy.tb_category(id),
     FOREIGN KEY (country_id) REFERENCES strategy.tb_country(id)
 );

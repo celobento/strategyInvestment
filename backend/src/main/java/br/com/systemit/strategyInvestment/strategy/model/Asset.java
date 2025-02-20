@@ -26,7 +26,7 @@ public class Asset {
     @Column(name = "ticket", nullable = false, length = 10)
     private String ticket;
 
-    @Column(name = "description", nullable = false, length = 250)
+    @Column(name = "description", nullable = true, length = 250)
     private String description;
 
     @ManyToOne
@@ -40,6 +40,10 @@ public class Asset {
     @ManyToOne
     @JoinColumn(name = "sector_id", referencedColumnName = "id")
     private Sector sector;
+
+    @ManyToOne
+    @JoinColumn(name = "segment_id", referencedColumnName = "id")
+    private Segment segment;
 
     @CreatedDate
     @Column(name = "created_at")
