@@ -93,3 +93,21 @@ insert into strategy.tb_segment(name, description) values ('Utilidade Pública',
 insert into strategy.tb_segment(name, description) values ('Seguradora', 'Seguradora');
 
 select * from strategy.tb_segment;
+
+CREATE TABLE strategy.tb_revision (
+    id serial PRIMARY KEY not null,
+    created_date timestamp not null,
+    current_value numeric(16,2),
+    dividend_yeld numeric(16,2),
+    income_factor numeric(16,2),
+    pvp numeric(16,2),
+    last_income numeric(16,2),
+    date_last_income date not null,
+    next_income numeric(16,2),
+    date_next_income date,
+    notes varchar(500),
+    asset_id BIGINT,
+    FOREIGN KEY (asset_id) REFERENCES strategy.tb_asset(id)
+);
+
+select * from strategy.tb_revision;
