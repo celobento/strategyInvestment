@@ -9,6 +9,10 @@ import br.com.systemit.strategyInvestment.strategy.model.dto.SearchCategoryRespo
 import br.com.systemit.strategyInvestment.strategy.model.dto.mapper.CategoryMapper;
 import br.com.systemit.strategyInvestment.strategy.service.CategoryService;
 import br.com.systemit.strategyInvestment.util.JsonUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,12 +26,19 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("categories")
 @RequiredArgsConstructor
+@Tag(name = "Category")
 public class CategoryController {
 
     private final CategoryService categoryService;
     private final CategoryMapper categoryMapper;
 
     @PostMapping
+    @Operation( summary = "Create category", description = "Endpoint to create a new category")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Data to create new category")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Saved successfully"),
+            @ApiResponse(responseCode = "500", description = "Uncataloged error"),
+    })
     public ResponseEntity<Object> create(@RequestBody @Valid CategoryCreateRequestDTO dto) {
         Category category = categoryMapper.toEntity(dto);
         category = categoryService.salvar(category);
@@ -73,9 +84,13 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> delete(
-            @PathVariable("id") Integer id){
-
+    @Operation( summary = "Delete category", description = "Endpoint to delete a category")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Data to delete a category")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Deleted successfully"),
+            @ApiResponse(responseCode = "500", description = "Uncataloged error"),
+    })
+    public ResponseEntity<Object> delete(@PathVariable("id") Integer id){
         categoryService.delete(id);
         return ResponseEntity.noContent().build();
     }
