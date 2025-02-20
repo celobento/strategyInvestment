@@ -4,6 +4,7 @@ import br.com.systemit.strategyInvestment.strategy.model.Asset;
 import br.com.systemit.strategyInvestment.strategy.model.dto.AssetCreateRequestDTO;
 import br.com.systemit.strategyInvestment.strategy.model.dto.mapper.AssetMapper;
 import br.com.systemit.strategyInvestment.strategy.service.AssetService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("assets")
 @RequiredArgsConstructor
+@Tag(name = "Asset")
 public class AssetController {
 
     private final AssetService assetService;

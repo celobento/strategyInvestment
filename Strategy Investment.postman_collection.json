@@ -297,6 +297,72 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Asset",
+			"item": [
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Hedge Top FOFII 3\",\r\n    \"ticket\": \"HFOF11\",\r\n    \"country\": 1,\r\n    \"category\": 1,\r\n    \"sector\": 7,\r\n    \"segment\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/assets",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"assets"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Revision",
+			"item": [
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"currentValue\": 52.99,\r\n    \"dividendYeld\": 13.72,\r\n    \"incomeFactor\": 0.97,\r\n    \"pVp\": 0.82,\r\n    \"lastIncome\": 0.56,\r\n    \"dateLastIncome\": \"2025-02-14\",\r\n    //\"nextIncome\": 0,\r\n    //\"dateNextIncome\": \"-\",\r\n    \"notes\": \"n/a\",\r\n    \"asset\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/revisions",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"revisions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

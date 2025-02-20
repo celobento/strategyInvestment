@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,6 +21,7 @@ public class Revision {
     @Column
     private Integer id;
 
+    @CreatedDate
     @Column(name = "created_date", nullable = false)
     private LocalDateTime createdDate;
 
@@ -39,13 +41,13 @@ public class Revision {
     private BigDecimal lastIncome;
 
     @Column(name = "date_last_income", nullable = false)
-    private LocalDateTime dateLastIncome;
+    private LocalDate dateLastIncome;
 
     @Column(name = "next_income", nullable = true, precision = 16, scale = 2)
     private BigDecimal nextIncome;
 
     @Column(name = "date_next_income", nullable = true)
-    private LocalDateTime dateNextIncome;
+    private LocalDate dateNextIncome;
 
     @Column(name = "notes", nullable = true, length = 500)
     private String notes;

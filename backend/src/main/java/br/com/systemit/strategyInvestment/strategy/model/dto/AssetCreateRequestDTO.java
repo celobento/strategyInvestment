@@ -1,5 +1,6 @@
 package br.com.systemit.strategyInvestment.strategy.model.dto;
 
+import br.com.systemit.strategyInvestment.strategy.model.Asset;
 import br.com.systemit.strategyInvestment.strategy.model.Category;
 import br.com.systemit.strategyInvestment.strategy.model.Country;
 import br.com.systemit.strategyInvestment.strategy.model.Sector;
@@ -10,6 +11,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Schema(name = "AssetCreateRequest")
 public record AssetCreateRequestDTO(
