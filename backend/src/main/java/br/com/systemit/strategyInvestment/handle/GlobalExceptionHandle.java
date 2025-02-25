@@ -5,6 +5,7 @@ import br.com.systemit.strategyInvestment.dto.Problem;
 import br.com.systemit.strategyInvestment.dto.Validations;
 import br.com.systemit.strategyInvestment.exception.StrategyInvestmentException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -39,6 +40,15 @@ public class GlobalExceptionHandle {
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Problem handleRuntimeException(RuntimeException e){
+        e.printStackTrace();
         return new Problem(ProcessingResultConstant.ERROR_NOT_CATALOGED.getId(), ProcessingResultConstant.ERROR_NOT_CATALOGED.getDescription(), List.of());
     }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Problem handleRuntimeAuthorizationDeniedException(AuthorizationDeniedException e){
+        return new Problem(ProcessingResultConstant.ERROR_NOT_PERMITED.getId(), ProcessingResultConstant.ERROR_NOT_PERMITED.getDescription(), List.of());
+    }
+
+
 }
