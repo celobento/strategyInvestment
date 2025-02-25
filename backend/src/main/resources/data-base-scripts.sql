@@ -1,6 +1,7 @@
 CREATE DABASE strategy;
 
 CREATE SCHEMA strategy;
+CREATE SCHEMA auth;
 
 CREATE TABLE strategy.tb_category (
     id serial PRIMARY KEY not null,
@@ -118,3 +119,16 @@ CREATE TABLE strategy.tb_revision (
 );
 
 select * from strategy.tb_revision;
+
+CREATE TABLE auth.tb_user(
+    id serial PRIMARY KEY not null,
+    created_date timestamp not null,
+    username varchar(50) not null unique,
+    password varchar(200) not null,
+    last_password varchar(200) not null,
+    first_access boolean DEFAULT TRUE not null,
+	email varchar(150) not null unique,
+    roles varchar[]
+);
+
+select * from auth.tb_user;
