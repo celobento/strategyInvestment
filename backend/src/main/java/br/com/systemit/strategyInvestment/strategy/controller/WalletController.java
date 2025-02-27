@@ -1,9 +1,9 @@
 package br.com.systemit.strategyInvestment.strategy.controller;
 
-import br.com.systemit.strategyInvestment.strategy.model.Asset;
-import br.com.systemit.strategyInvestment.strategy.model.dto.AssetCreateRequestDTO;
-import br.com.systemit.strategyInvestment.strategy.model.dto.mapper.AssetMapper;
-import br.com.systemit.strategyInvestment.strategy.service.AssetService;
+import br.com.systemit.strategyInvestment.strategy.model.Wallet;
+import br.com.systemit.strategyInvestment.strategy.model.dto.WalletCreateRequestDTO;
+import br.com.systemit.strategyInvestment.strategy.model.dto.mapper.WalletMapper;
+import br.com.systemit.strategyInvestment.strategy.service.WalletService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -15,38 +15,38 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("assets")
+@RequestMapping("wallets")
 @RequiredArgsConstructor
-@Tag(name = "Asset")
-public class AssetController {
+@Tag(name = "Wallet")
+public class WalletController {
 
-    private final AssetService assetService;
-    private final AssetMapper assetMapper;
+    private final WalletService walletService;
+    private final WalletMapper walletMapper;
 
     @PostMapping
-    @Operation( summary = "Create asset", description = "Endpoint to create a new asset")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Data to create new asset")
+    @Operation( summary = "Create Wallet", description = "Endpoint to create a new wallet")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Data to create new wallet")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Saved successfully"),
             @ApiResponse(responseCode = "500", description = "Uncataloged error"),
     })
-    public ResponseEntity<Object> create(@RequestBody @Valid AssetCreateRequestDTO dto) {
-        Asset asset = assetMapper.toEntity(dto);
-        asset = assetService.save(asset);
+    public ResponseEntity<Object> create(@RequestBody @Valid WalletCreateRequestDTO dto) {
+        Wallet wallet = walletMapper.toEntity(dto);
+        wallet = walletService.save(wallet);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(assetMapper.toDtoCreateResponse(asset));
+                .body(walletMapper.toDtoCreateResponse(wallet));
     }
 
     @DeleteMapping("/{id}")
-    @Operation( summary = "Delete asset", description = "Endpoint to delete a asset")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Data to delete a asset")
+    @Operation( summary = "Delete wallet", description = "Endpoint to delete a wallet")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Data to delete a wallet")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Deleted successfully"),
             @ApiResponse(responseCode = "500", description = "Uncataloged error"),
     })
     public ResponseEntity<Object> delete(@PathVariable("id") Integer id){
-        assetService.delete(id);
+        walletService.delete(id);
         return ResponseEntity.noContent().build();
     }
 

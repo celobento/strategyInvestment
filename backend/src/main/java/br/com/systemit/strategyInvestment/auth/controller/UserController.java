@@ -12,10 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("users")
@@ -39,5 +36,17 @@ public class UserController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(userMapper.toDtoCreateResponse(user));
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation( summary = "Delete user", description = "Endpoint to delete a user")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Data to delete a user")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Deleted successfully"),
+            @ApiResponse(responseCode = "500", description = "Uncataloged error"),
+    })
+    public ResponseEntity<Object> delete(@PathVariable("id") Integer id){
+        userService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

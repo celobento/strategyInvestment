@@ -31,16 +31,15 @@ public class AssetValidator {
         validateIdExists(asset.getId());
     }
 
-    private void validateIdExists(Integer id) {
+    private Optional<Asset> validateIdExists(Integer id) {
         Optional<Asset> assetOptional = assetRepository.findById(id);
         if(assetOptional.isEmpty()){
             throw new StrategyInvestmentException(ProcessingResultConstant.ERROR_NOT_FOUND);
         }
+        return assetOptional;
     }
 
     public Optional<Asset> validateDeleteAsset(Integer id) {
-        Optional<Asset> assetOptional = assetRepository.findById(id);
-        validateIdExists(id);
-        return assetOptional;
+        return validateIdExists(id);
     }
 }

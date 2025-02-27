@@ -34,7 +34,7 @@ public class GlobalExceptionHandle {
     @ExceptionHandler(StrategyInvestmentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Problem handleStrategyInvestmentException(StrategyInvestmentException e) {
-        return new Problem(e.getResult().getId(), e.getResult().getDescription(), List.of());
+        return new Problem(e.getResult().getId(), e.getResult().getDescription(), e.getValidation() != null ? List.of(e.getValidation()) : List.of());
     }
 
     @ExceptionHandler(RuntimeException.class)

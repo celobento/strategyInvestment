@@ -132,3 +132,15 @@ CREATE TABLE auth.tb_user(
 );
 
 select * from auth.tb_user;
+
+CREATE TABLE strategy.tb_wallet (
+    id serial PRIMARY KEY not null,
+    created_date timestamp not null,
+    current_value numeric(16,2) DEFAULT 0.0,
+    dividend_yeld numeric(16,2)  DEFAULT 0.0,
+    name varchar(100),
+    user_id BIGINT,
+    FOREIGN KEY (user_id) REFERENCES auth.tb_user(id)
+);
+
+select * from strategy.tb_wallet;
