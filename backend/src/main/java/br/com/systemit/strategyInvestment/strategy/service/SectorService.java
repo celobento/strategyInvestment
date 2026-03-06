@@ -1,14 +1,11 @@
 package br.com.systemit.strategyInvestment.strategy.service;
 
-import br.com.systemit.strategyInvestment.strategy.model.Category;
-import br.com.systemit.strategyInvestment.strategy.model.Sector;
-import br.com.systemit.strategyInvestment.strategy.repository.SectorRepository;
-import br.com.systemit.strategyInvestment.strategy.validator.CategoryValidator;
-import br.com.systemit.strategyInvestment.strategy.validator.SectorValidator;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import br.com.systemit.strategyInvestment.strategy.model.Sector;
+import br.com.systemit.strategyInvestment.strategy.repository.SectorRepository;
+import br.com.systemit.strategyInvestment.strategy.validator.SectorValidator;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

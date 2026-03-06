@@ -1,14 +1,14 @@
 package br.com.systemit.strategyInvestment.strategy.service;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import br.com.systemit.strategyInvestment.strategy.model.Category;
 import br.com.systemit.strategyInvestment.strategy.repository.CategoryRepository;
 import br.com.systemit.strategyInvestment.strategy.validator.CategoryValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.*;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +21,7 @@ public class CategoryService {
         return categoryRepository.findByNameContainingIgnoreCase(nome);
     }
 
-    public Optional<Category> findById(Integer id)  {
+    public Optional<Category> findById(Integer id) {
         return categoryRepository.findById(id);
     }
 

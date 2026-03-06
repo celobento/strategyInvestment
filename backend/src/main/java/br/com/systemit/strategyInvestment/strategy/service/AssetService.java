@@ -1,13 +1,13 @@
 package br.com.systemit.strategyInvestment.strategy.service;
 
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import br.com.systemit.strategyInvestment.strategy.model.Asset;
-import br.com.systemit.strategyInvestment.strategy.model.Category;
 import br.com.systemit.strategyInvestment.strategy.repository.AssetRepository;
 import br.com.systemit.strategyInvestment.strategy.validator.AssetValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

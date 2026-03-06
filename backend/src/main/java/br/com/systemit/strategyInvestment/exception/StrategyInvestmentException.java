@@ -1,7 +1,6 @@
 package br.com.systemit.strategyInvestment.exception;
 
 import br.com.systemit.strategyInvestment.constants.ProcessingResultConstant;
-import br.com.systemit.strategyInvestment.dto.Problem;
 import br.com.systemit.strategyInvestment.dto.Validations;
 
 public class StrategyInvestmentException extends RuntimeException {
@@ -14,7 +13,7 @@ public class StrategyInvestmentException extends RuntimeException {
         this.result = result;
     }
 
-    public StrategyInvestmentException(ProcessingResultConstant result,  Validations validation) {
+    public StrategyInvestmentException(ProcessingResultConstant result, Validations validation) {
         super(result.getId() + " - " + result.getDescription());
         this.result = result;
         this.validation = validation;

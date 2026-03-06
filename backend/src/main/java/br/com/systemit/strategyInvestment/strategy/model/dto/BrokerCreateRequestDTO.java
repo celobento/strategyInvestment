@@ -4,14 +4,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-@Schema(name = "CountryCreateRequest")
-public record CountryCreateRequestDTO(
+@Schema(name = "BrokerCreateRequest")
+public record BrokerCreateRequestDTO(
 
         @NotBlank(message = "Required field")
         @Size(min = 2, max = 100, message = "Size field out range")
         String name,
 
         @NotBlank(message = "Required field")
-        @Size(min = 2, max = 3, message = "Size field out range")
-        String acronym) {
+        @Size(min = 2, max = 250, message = "Size field out range")
+        String webSite) {
 }

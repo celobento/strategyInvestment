@@ -1,14 +1,14 @@
 package br.com.systemit.strategyInvestment.auth.service;
 
-import br.com.systemit.strategyInvestment.auth.model.User;
-import br.com.systemit.strategyInvestment.auth.repository.UserRepository;
-import br.com.systemit.strategyInvestment.auth.validator.UserValidator;
-import br.com.systemit.strategyInvestment.strategy.model.Revision;
-import lombok.RequiredArgsConstructor;
+import java.util.Optional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import br.com.systemit.strategyInvestment.auth.model.User;
+import br.com.systemit.strategyInvestment.auth.repository.UserRepository;
+import br.com.systemit.strategyInvestment.auth.validator.UserValidator;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

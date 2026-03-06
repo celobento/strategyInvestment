@@ -1,10 +1,10 @@
 package br.com.systemit.strategyInvestment.strategy.repository;
 
-import br.com.systemit.strategyInvestment.strategy.model.Category;
-import br.com.systemit.strategyInvestment.strategy.model.Sector;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import br.com.systemit.strategyInvestment.strategy.model.Sector;
 
 public interface SectorRepository extends JpaRepository<Sector, Integer> {
 

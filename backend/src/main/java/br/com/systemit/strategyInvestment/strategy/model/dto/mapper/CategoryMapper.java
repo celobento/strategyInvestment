@@ -6,12 +6,15 @@ import br.com.systemit.strategyInvestment.strategy.model.dto.CategoryCreateRespo
 import br.com.systemit.strategyInvestment.strategy.model.dto.CategoryUpdateRequestDTO;
 import br.com.systemit.strategyInvestment.strategy.model.dto.SearchCategoryResponseDTO;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface CategoryMapper {
 
+    @Mapping(target = "id", ignore = true)
     Category toEntity(CategoryCreateRequestDTO dto);
 
+    @Mapping(target = "id", ignore = true)
     Category toEntity(CategoryUpdateRequestDTO dto);
 
     CategoryCreateRequestDTO toDto(Category category);

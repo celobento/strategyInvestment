@@ -1,14 +1,14 @@
 package br.com.systemit.strategyInvestment.strategy.service;
 
+import java.math.BigDecimal;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import br.com.systemit.strategyInvestment.strategy.model.Wallet;
-import br.com.systemit.strategyInvestment.strategy.model.dto.WalletCreateRequestDTO;
 import br.com.systemit.strategyInvestment.strategy.repository.WalletRepository;
 import br.com.systemit.strategyInvestment.strategy.validator.WalletValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

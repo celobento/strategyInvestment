@@ -34,3 +34,4 @@ build/
 
 ### app ###
 strategy-app.log*
+.env
