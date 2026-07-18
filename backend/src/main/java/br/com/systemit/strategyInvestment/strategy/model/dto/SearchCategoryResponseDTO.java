@@ -6,5 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record SearchCategoryResponseDTO(
         Integer id,
         String name,
-        String description) {
+        String description,
+        Integer countryId,
+        String countryName,
+        String countryAcronym) {
 }

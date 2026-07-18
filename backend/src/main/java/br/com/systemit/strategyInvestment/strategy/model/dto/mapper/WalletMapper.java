@@ -9,6 +9,7 @@ import br.com.systemit.strategyInvestment.auth.repository.UserRepository;
 import br.com.systemit.strategyInvestment.strategy.model.Wallet;
 import br.com.systemit.strategyInvestment.strategy.model.dto.WalletCreateRequestDTO;
 import br.com.systemit.strategyInvestment.strategy.model.dto.WalletCreateResponseDTO;
+import br.com.systemit.strategyInvestment.strategy.model.dto.SearchWalletResponseDTO;
 
 @Mapper(componentModel = "spring", uses = UserMapper.class)
 public abstract class WalletMapper {
@@ -25,6 +26,6 @@ public abstract class WalletMapper {
 
     public abstract WalletCreateResponseDTO toDtoCreateResponse(Wallet wallet);
 
-    // SearchWalletResponseDTO toDtoSearchWalletResponse(Wallet wallet);
+    public abstract SearchWalletResponseDTO toDtoSearchWalletResponse(Wallet wallet);
 
 }

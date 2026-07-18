@@ -82,7 +82,7 @@ public class CategoryController {
         Category category = categoryMapper.toEntity(dto);
         category.setId(id);
         category = categoryService.update(category);
-        return ResponseEntity.status(HttpStatus.OK).body(category);
+        return ResponseEntity.status(HttpStatus.OK).body(categoryMapper.toDtoSearchCategoryResponse(category));
     }
 
     @DeleteMapping("/{id}")

@@ -42,6 +42,9 @@ public class Wallet {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Column(name = "min_asset_pays", nullable = true, precision = 16, scale = 2)
+    private BigDecimal minAssetPays;
+
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;

@@ -1,5 +1,6 @@
 package br.com.systemit.strategyInvestment.strategy.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -9,6 +10,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -52,6 +55,26 @@ public class Asset {
     @ManyToOne
     @JoinColumn(name = "segment_id", referencedColumnName = "id")
     private Segment segment;
+
+    @ManyToOne
+    @JoinColumn(name = "asset_type_id", referencedColumnName = "id")
+    private AssetType assetType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "income_type", length = 20)
+    private IncomeType incomeType;
+
+    @Column(name = "ceiling_price", precision = 16, scale = 2)
+    private BigDecimal ceilingPrice;
+
+    @Column(name = "nav_estimated", precision = 16, scale = 2)
+    private BigDecimal navEstimated;
+
+    @Column(name = "premium_discount", precision = 16, scale = 4)
+    private BigDecimal premiumDiscount;
+
+    @Column(name = "indicator", length = 20)
+    private String indicator;
 
     @CreatedDate
     @Column(name = "created_at")

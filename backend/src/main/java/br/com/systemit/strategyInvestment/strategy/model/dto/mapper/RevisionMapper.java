@@ -3,6 +3,7 @@ package br.com.systemit.strategyInvestment.strategy.model.dto.mapper;
 import br.com.systemit.strategyInvestment.strategy.model.Revision;
 import br.com.systemit.strategyInvestment.strategy.model.dto.RevisionCreateRequestDTO;
 import br.com.systemit.strategyInvestment.strategy.model.dto.RevisionCreateResponseDTO;
+import br.com.systemit.strategyInvestment.strategy.model.dto.SearchRevisionResponseDTO;
 import br.com.systemit.strategyInvestment.strategy.repository.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -27,6 +28,7 @@ public abstract class RevisionMapper {
     @Mapping(target = "pVp", source = "PVp")
     public abstract RevisionCreateResponseDTO toDtoCreateResponse(Revision revision);
 
-    //SearchRevisionResponseDTO toDtoSearchRevisionResponse(Revision revision);
+    @Mapping(target = "pVp", source = "PVp")
+    public abstract SearchRevisionResponseDTO toDtoSearchRevisionResponse(Revision revision);
 
 }

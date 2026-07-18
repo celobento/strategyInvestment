@@ -1,5 +1,6 @@
 package br.com.systemit.strategyInvestment.strategy.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -16,8 +17,23 @@ public class AssetService {
     private final AssetRepository assetRepository;
     private final AssetValidator validator;
 
+    public Optional<Asset> findById(Integer id) {
+        return assetRepository.findById(id);
+    }
+
+    public List<Asset> search(String name) {
+        if (name != null && !name.isEmpty()) {
+            return assetRepository.findByNameContainingIgnoreCase(name);
+        }
+        return assetRepository.findAll();
+    }
+
     public Asset save(Asset asset) {
         validator.validateNewAsset(asset);
+        return assetRepository.save(asset);
+    }
+
+    public Asset update(Asset asset) {
         return assetRepository.save(asset);
     }
 

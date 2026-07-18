@@ -11,5 +11,7 @@ public record CategoryCreateRequestDTO(
         @Size(min = 2, max = 100, message = "Size field out range")
         String name,
 
-        String description) {
+        String description,
+
+        Integer countryId) {
 }

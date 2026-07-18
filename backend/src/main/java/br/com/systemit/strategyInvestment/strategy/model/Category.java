@@ -18,4 +18,8 @@ public class Category {
 
     @Column(name = "description", nullable = true, length = 250)
     private String description;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "country_id", nullable = true)
+    private Country country;
 }

@@ -1,5 +1,6 @@
 package br.com.systemit.strategyInvestment.strategy.model.dto;
 
+import br.com.systemit.strategyInvestment.strategy.model.IncomeType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,5 +21,9 @@ public record AssetCreateRequestDTO(
 
                 @NotNull(message = "Required field") Integer sector,
 
-                @NotNull(message = "Required field") Integer segment) {
+                @NotNull(message = "Required field") Integer segment,
+
+                IncomeType incomeType,
+
+                Integer assetTypeId) {
 }

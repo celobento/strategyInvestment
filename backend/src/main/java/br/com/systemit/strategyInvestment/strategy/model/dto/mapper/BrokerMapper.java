@@ -3,6 +3,7 @@ package br.com.systemit.strategyInvestment.strategy.model.dto.mapper;
 import br.com.systemit.strategyInvestment.strategy.model.Broker;
 import br.com.systemit.strategyInvestment.strategy.model.dto.BrokerCreateRequestDTO;
 import br.com.systemit.strategyInvestment.strategy.model.dto.BrokerCreateResponseDTO;
+import br.com.systemit.strategyInvestment.strategy.model.dto.SearchBrokerResponseDTO;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
@@ -12,5 +13,7 @@ public interface BrokerMapper {
     Broker toEntity(BrokerCreateRequestDTO dto);
 
     BrokerCreateResponseDTO toDtoCreateResponse(Broker broker);
+
+    SearchBrokerResponseDTO toDtoSearchBrokerResponse(Broker broker);
 
 }

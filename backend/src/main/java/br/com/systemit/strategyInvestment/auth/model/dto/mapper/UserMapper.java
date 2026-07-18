@@ -4,6 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import br.com.systemit.strategyInvestment.auth.model.User;
+import br.com.systemit.strategyInvestment.auth.model.dto.SearchUserResponseDTO;
 import br.com.systemit.strategyInvestment.auth.model.dto.UserCreateRequestDTO;
 import br.com.systemit.strategyInvestment.auth.model.dto.UserCreateResponseDTO;
 
@@ -15,5 +16,8 @@ public interface UserMapper {
 
     @Mapping(target = "roles", source = "roles")
     UserCreateResponseDTO toDtoCreateResponse(User user);
+
+    @Mapping(target = "roles", source = "roles")
+    SearchUserResponseDTO toDtoSearchUserResponse(User user);
 
 }

@@ -1,5 +1,6 @@
 package br.com.systemit.strategyInvestment.strategy.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -15,6 +16,14 @@ public class RevisionService {
 
     private final RevisionRepository revisionRepository;
     private final RevisionValidator validator;
+
+    public Optional<Revision> findById(Integer id) {
+        return revisionRepository.findById(id);
+    }
+
+    public List<Revision> findAll() {
+        return revisionRepository.findAll();
+    }
 
     public Revision save(Revision revision) {
         return revisionRepository.save(revision);

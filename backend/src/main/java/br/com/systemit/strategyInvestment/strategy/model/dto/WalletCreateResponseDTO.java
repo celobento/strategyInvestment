@@ -11,6 +11,7 @@ public record WalletCreateResponseDTO(
 		Integer id,
 		BigDecimal currentValue,
 		BigDecimal dividendYeld,
+		BigDecimal minAssetPays,
 		String name,
 		User user) {
 }
