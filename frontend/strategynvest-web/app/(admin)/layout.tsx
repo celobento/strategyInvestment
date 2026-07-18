@@ -1,10 +1,15 @@
-import Sidebar from '@/components/Sidebar'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import AppSidebar from '@/components/Sidebar'
+import Header from '@/components/Header'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="ml-56 flex-1 p-8">{children}</main>
-    </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <Header />
+        <div className="flex-1 p-4 md:p-8">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

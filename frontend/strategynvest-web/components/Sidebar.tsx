@@ -1,131 +1,170 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { signOut } from 'next-auth/react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
+import {
+  LayoutDashboard,
+  TrendingUp,
+  DollarSign,
+  Wallet,
+  FileText,
+  Package,
+  Tag,
+  LayoutGrid,
+  Building2,
+  Briefcase,
+  Globe,
+  Users,
+  LogOut,
+} from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from '@/components/ui/sidebar'
 
 const topItems = [
-  { label: 'Dashboard', href: '/' },
-  { label: 'My Assets', href: '/my-assets' },
-  { label: 'Dividends', href: '/dividends' },
-  { label: 'Wallets', href: '/wallets' },
-  { label: 'Revisions', href: '/revisions' },
+  { label: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { label: 'My Assets', href: '/my-assets', icon: TrendingUp },
+  { label: 'Dividends', href: '/dividends', icon: DollarSign },
+  { label: 'Wallets', href: '/wallets', icon: Wallet },
+  { label: 'Revisions', href: '/revisions', icon: FileText },
 ]
 
 const settingsItems = [
-  { label: 'Assets', href: '/assets' },
-  { label: 'Asset Types', href: '/asset-types' },
-  { label: 'Categories', href: '/categories' },
-  { label: 'Sectors', href: '/sectors' },
-  { label: 'Brokers', href: '/brokers' },
-  { label: 'Countries', href: '/countries' },
-  { label: 'Users', href: '/users' },
+  { label: 'Assets', href: '/assets', icon: Package },
+  { label: 'Asset Types', href: '/asset-types', icon: Tag },
+  { label: 'Categories', href: '/categories', icon: LayoutGrid },
+  { label: 'Sectors', href: '/sectors', icon: Building2 },
+  { label: 'Brokers', href: '/brokers', icon: Briefcase },
+  { label: 'Countries', href: '/countries', icon: Globe },
+  { label: 'Users', href: '/users', icon: Users },
 ]
 
-const settingsPaths = settingsItems.map((i) => i.href)
-
-export default function Sidebar() {
+export default function AppSidebar() {
   const pathname = usePathname()
   const { data: session } = useSession()
-
-  const settingsActive = settingsPaths.some((p) => pathname.startsWith(p))
-  const [settingsOpen, setSettingsOpen] = useState(settingsActive)
+  const user = session?.user
+  const initials = user?.name?.charAt(0)?.toUpperCase() ?? user?.email?.charAt(0)?.toUpperCase() ?? 'U'
 
   return (
-    <aside className="fixed top-0 left-0 h-full w-56 bg-sidebar border-r border-sidebar-border flex flex-col z-50">
-      <div className="px-5 py-4 border-b border-sidebar-border">
-        <p className="text-xs font-medium text-sidebar-foreground/50 uppercase tracking-widest mb-0.5">Admin</p>
-        <h1 className="text-base font-bold text-sidebar-foreground">Strategy Invest</h1>
-      </div>
+    <Sidebar collapsible="icon">
+      {/* Logo */}
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" render={<Link href="/" />} isActive={false}>
+              <div
+                className="flex aspect-square size-8 items-center justify-center rounded-lg"
+                style={{ backgroundColor: '#00250c' }}
+              >
+                <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="#6ba513" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                  <polyline points="16 7 22 7 22 13" />
+                </svg>
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold" style={{ color: '#001c1f' }}>
+                  Strategy<span style={{ color: '#6ba513' }}>Invest</span>
+                </span>
+                <span className="truncate text-xs text-sidebar-foreground/50">Admin Panel</span>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
 
-      <nav className="flex-1 py-3 overflow-y-auto">
-        {topItems.map((item) => {
-          const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center px-5 py-2 text-sm transition-colors ${
-                active
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-              }`}
+      {/* Nav */}
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Main</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {topItems.map((item) => {
+                const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      render={<Link href={item.href} />}
+                      isActive={active}
+                      tooltip={item.label}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Settings</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {settingsItems.map((item) => {
+                const active = pathname.startsWith(item.href)
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      render={<Link href={item.href} />}
+                      isActive={active}
+                      tooltip={item.label}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      {/* User footer */}
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" tooltip={user?.name ?? 'User'}>
+              <Avatar className="h-7 w-7 rounded-lg">
+                <AvatarImage src={user?.image ?? undefined} />
+                <AvatarFallback className="rounded-lg text-xs font-semibold text-white" style={{ backgroundColor: '#6ba513' }}>
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{user?.name ?? user?.email ?? 'User'}</span>
+                {user?.email && (
+                  <span className="truncate text-xs text-sidebar-foreground/50">{user.email}</span>
+                )}
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Sign Out"
+              onClick={() => signOut({ callbackUrl: '/signin' })}
             >
-              {item.label}
-            </Link>
-          )
-        })}
+              <LogOut />
+              <span>Sign Out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
 
-        {/* Settings group */}
-        <button
-          onClick={() => setSettingsOpen((o) => !o)}
-          className={`w-full flex items-center justify-between px-5 py-2 text-sm transition-colors mt-1 ${
-            settingsActive
-              ? 'text-sidebar-accent-foreground font-medium'
-              : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-          }`}
-        >
-          <span>Settings</span>
-          <svg
-            className={`h-3.5 w-3.5 transition-transform duration-200 ${settingsOpen ? 'rotate-180' : ''}`}
-            viewBox="0 0 12 12"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-          >
-            <path d="M2 4l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-
-        {settingsOpen && (
-          <div className="mt-0.5">
-            {settingsItems.map((item) => {
-              const active = pathname.startsWith(item.href)
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center pl-9 pr-5 py-1.5 text-sm transition-colors ${
-                    active
-                      ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                      : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              )
-            })}
-          </div>
-        )}
-      </nav>
-
-      <div className="px-4 py-4 border-t border-sidebar-border">
-        <div className="flex items-center gap-2 mb-3">
-          <Avatar className="h-7 w-7">
-            <AvatarImage src={session?.user?.image ?? undefined} />
-            <AvatarFallback className="text-xs">
-              {session?.user?.name?.charAt(0)?.toUpperCase() ?? 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-sidebar-foreground truncate">
-              {session?.user?.name ?? session?.user?.email ?? 'User'}
-            </p>
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full text-xs"
-          onClick={() => signOut({ callbackUrl: '/signin' })}
-        >
-          Sign Out
-        </Button>
-      </div>
-    </aside>
+      <SidebarRail />
+    </Sidebar>
   )
 }

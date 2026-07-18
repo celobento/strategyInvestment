@@ -40,8 +40,8 @@ export default function AssetTypesPage() {
           <h1 className="text-2xl font-bold tracking-tight">Asset Types</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage asset types (e.g. Qualidade, Crescimento, Dividendo, Valor)</p>
         </div>
-        <Button asChild>
-          <Link href="/asset-types/new">+ New Asset Type</Link>
+        <Button render={<Link href="/asset-types/new" />}>
+          + New Asset Type
         </Button>
       </div>
 
@@ -90,8 +90,8 @@ export default function AssetTypesPage() {
                       <td className="py-3 px-4 text-muted-foreground">{at.description ?? '—'}</td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" asChild>
-                            <Link href={`/asset-types/${at.id}/edit`}>Edit</Link>
+                          <Button size="sm" variant="outline" render={<Link href={`/asset-types/${at.id}/edit`} />}>
+                            Edit
                           </Button>
                           <Button
                             size="sm"

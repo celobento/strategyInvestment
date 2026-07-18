@@ -24,8 +24,8 @@ export default function BrokersPage() {
           <h1 className="text-2xl font-bold tracking-tight">Brokers</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage brokers</p>
         </div>
-        <Button asChild>
-          <Link href="/brokers/new">+ New Broker</Link>
+        <Button render={<Link href="/brokers/new" />}>
+          + New Broker
         </Button>
       </div>
 

@@ -24,8 +24,8 @@ export default function CountriesPage() {
           <h1 className="text-2xl font-bold tracking-tight">Countries</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage countries</p>
         </div>
-        <Button asChild>
-          <Link href="/countries/new">+ New Country</Link>
+        <Button render={<Link href="/countries/new" />}>
+          + New Country
         </Button>
       </div>
 

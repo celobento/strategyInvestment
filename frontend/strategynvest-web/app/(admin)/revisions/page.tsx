@@ -36,8 +36,8 @@ export default function RevisionsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Revisions</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage asset revisions</p>
         </div>
-        <Button asChild>
-          <Link href="/revisions/new">+ New Revision</Link>
+        <Button render={<Link href="/revisions/new" />}>
+          + New Revision
         </Button>
       </div>
 

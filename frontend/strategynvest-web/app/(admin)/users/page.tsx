@@ -43,8 +43,8 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold">Users</h1>
           <p className="text-muted-foreground">Manage application users</p>
         </div>
-        <Button asChild>
-          <Link href="/users/new">+ New User</Link>
+        <Button render={<Link href="/users/new" />}>
+          + New User
         </Button>
       </div>
 

@@ -40,8 +40,8 @@ export default function SectorsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Sectors</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage market sectors</p>
         </div>
-        <Button asChild>
-          <Link href="/sectors/new">+ New Sector</Link>
+        <Button render={<Link href="/sectors/new" />}>
+          + New Sector
         </Button>
       </div>
 

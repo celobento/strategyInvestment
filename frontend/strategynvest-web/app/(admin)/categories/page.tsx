@@ -40,8 +40,8 @@ export default function CategoriesPage() {
           <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage investment categories</p>
         </div>
-        <Button asChild>
-          <Link href="/categories/new">+ New Category</Link>
+        <Button render={<Link href="/categories/new" />}>
+          + New Category
         </Button>
       </div>
 
@@ -95,8 +95,8 @@ export default function CategoriesPage() {
                     <td className="py-3 px-4 text-muted-foreground">{cat.description ?? '—'}</td>
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" asChild>
-                          <Link href={`/categories/${cat.id}/edit`}>Edit</Link>
+                        <Button size="sm" variant="outline" render={<Link href={`/categories/${cat.id}/edit`} />}>
+                          Edit
                         </Button>
                         <Button
                           size="sm"

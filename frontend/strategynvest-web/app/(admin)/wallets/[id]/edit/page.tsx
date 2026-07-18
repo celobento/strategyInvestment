@@ -455,8 +455,8 @@ export default function WalletEditPage({ params }: { params: Promise<{ id: strin
                           <td className="py-3 px-4 text-muted-foreground">{wa.countryAcronym ?? '—'}</td>
                           <td className="py-3 px-4 text-right">
                             <div className="flex gap-1 justify-end">
-                              <Button size="sm" variant="outline" asChild>
-                                <Link href={`/assets/${wa.assetId}/edit`}>Edit</Link>
+                              <Button size="sm" variant="outline" render={<Link href={`/assets/${wa.assetId}/edit`} />}>
+                                Edit
                               </Button>
                               <Button
                                 size="sm"

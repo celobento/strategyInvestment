@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth'
 import Google from 'next-auth/providers/google'
+import Credentials from 'next-auth/providers/credentials'
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080'
 
@@ -46,10 +47,49 @@ async function findOrCreateBackendUser(
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [Google],
+  providers: [
+    Google,
+    Credentials({
+      credentials: {
+        username: { label: 'Username', type: 'text' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.username || !credentials?.password) return null
+        try {
+          const res = await fetch(`${API}/auth`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              username: credentials.username,
+              password: credentials.password,
+            }),
+          })
+          if (!res.ok) return null
+          const u = await res.json()
+          return {
+            id: String(u.id),
+            name: u.username,
+            email: u.email,
+            username: u.username,
+            roles: u.roles ?? ['USER'],
+          }
+        } catch {
+          return null
+        }
+      },
+    }),
+  ],
   pages: { signIn: '/signin' },
+  session: { strategy: 'jwt' },
   callbacks: {
     async jwt({ token, user, account }) {
+      if (account?.provider === 'credentials' && user) {
+        token.id = user.id
+        token.username = (user as Record<string, unknown>).username as string
+        token.roles = (user as Record<string, unknown>).roles as string[]
+        return token
+      }
       // Only runs on the very first sign-in (account is only present then)
       if (account?.provider === 'google' && user?.email) {
         const backendUser = await findOrCreateBackendUser(user.email, user.name)

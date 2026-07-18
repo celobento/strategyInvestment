@@ -123,8 +123,8 @@ export default function AssetsPage() {
           >
             {importingRec ? 'Importing…' : 'Import Recommendations'}
           </Button>
-          <Button asChild>
-            <Link href="/assets/new">+ New Asset</Link>
+          <Button render={<Link href="/assets/new" />}>
+            + New Asset
           </Button>
         </div>
       </div>
@@ -198,8 +198,8 @@ export default function AssetsPage() {
                       <td className="py-3 px-4 text-muted-foreground">{a.assetType?.name ?? '—'}</td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" asChild>
-                            <Link href={`/assets/${a.id}/edit`}>Edit</Link>
+                          <Button size="sm" variant="outline" render={<Link href={`/assets/${a.id}/edit`} />}>
+                            Edit
                           </Button>
                           <Button
                             size="sm"

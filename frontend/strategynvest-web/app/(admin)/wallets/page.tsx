@@ -40,8 +40,8 @@ export default function WalletsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Wallets</h1>
           <p className="text-muted-foreground text-sm mt-1">Manage investment wallets</p>
         </div>
-        <Button asChild>
-          <Link href="/wallets/new">+ New Wallet</Link>
+        <Button render={<Link href="/wallets/new" />}>
+          + New Wallet
         </Button>
       </div>
 
@@ -100,8 +100,8 @@ export default function WalletsPage() {
                       <td className="py-3 px-4 text-muted-foreground">{w.createdDate?.slice(0, 10) ?? '—'}</td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline" asChild>
-                            <Link href={`/wallets/${w.id}/edit`}>Edit</Link>
+                          <Button size="sm" variant="outline" render={<Link href={`/wallets/${w.id}/edit`} />}>
+                            Edit
                           </Button>
                           <Button
                             size="sm"
