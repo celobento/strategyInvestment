@@ -22,6 +22,14 @@ public class DividendEntryService {
         return repository.findByYearOrderByMonthAscCategoryAsc(year);
     }
 
+    public List<DividendEntry> findByWallet(Integer walletId) {
+        return repository.findByWalletIdOrderByYearDescMonthDescCategoryAsc(walletId);
+    }
+
+    public List<DividendEntry> findByWalletAndYear(Integer walletId, Integer year) {
+        return repository.findByWalletIdAndYearOrderByMonthAscCategoryAsc(walletId, year);
+    }
+
     public Optional<DividendEntry> findById(Integer id) {
         return repository.findById(id);
     }

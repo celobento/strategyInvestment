@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useWalletStore } from '@/lib/stores/wallet-store'
 import {
   Chart as ChartJS,
   ArcElement,
@@ -15,12 +15,10 @@ import {
   Filler,
 } from 'chart.js'
 import { Doughnut, Bar, Line } from 'react-chartjs-2'
-import { getMyAssets, getUsdBrlRate, getWallets, getWalletStrategies, getDividendEntries } from '@/lib/api'
+import { getMyAssets, getWalletAssets, getUsdBrlRate, getWalletStrategies, getDividendEntries } from '@/lib/api'
 import type { WalletAsset, WalletStrategy, DividendEntry } from '@/lib/types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, LineElement, PointElement, Filler)
 
@@ -354,18 +352,37 @@ function DividendLineChart({ dividends, usdRate, year }: { dividends: DividendEn
     }
   }
 
+  const nonZero = monthlyTotals.filter((v) => v > 0)
+  const avg = nonZero.length > 0 ? nonZero.reduce((s, v) => s + v, 0) / nonZero.length : 0
+
   const chartData = {
     labels: MONTH_LABELS,
-    datasets: [{
-      label: `Dividends ${year} (BRL)`,
-      data: monthlyTotals,
-      borderColor: '#6ba513',
-      backgroundColor: 'rgba(107, 165, 19, 0.12)',
-      fill: true,
-      tension: 0.35,
-      pointRadius: 4,
-      pointBackgroundColor: '#6ba513',
-    }],
+    datasets: [
+      {
+        label: `Dividends ${year} (BRL)`,
+        data: monthlyTotals,
+        borderColor: '#6ba513',
+        backgroundColor: 'rgba(107, 165, 19, 0.12)',
+        fill: true,
+        tension: 0.35,
+        pointRadius: 4,
+        pointBackgroundColor: '#6ba513',
+        order: 1,
+      },
+      ...(avg > 0 ? [{
+        label: `Avg R$ ${fmt(avg)}`,
+        data: Array(12).fill(avg),
+        borderColor: '#b7a674',
+        backgroundColor: 'transparent',
+        borderDash: [6, 4],
+        borderWidth: 1.5,
+        fill: false,
+        tension: 0,
+        pointRadius: 0,
+        pointHoverRadius: 0,
+        order: 0,
+      }] : []),
+    ],
   }
 
   return (
@@ -376,7 +393,11 @@ function DividendLineChart({ dividends, usdRate, year }: { dividends: DividendEn
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: avg > 0,
+              position: 'bottom' as const,
+              labels: { font: { size: 11 }, boxWidth: 14, padding: 10 },
+            },
             tooltip: { callbacks: { label: (ctx) => ` R$ ${fmt(ctx.raw as number)}` } },
           },
           scales: {
@@ -526,9 +547,13 @@ function DividendLineByCategoryChart({ dividends, usdRate, year }: {
 }
 
 export default function DashboardPage() {
-  const { data: items = [], isLoading } = useQuery({
-    queryKey: ['my-assets'],
-    queryFn: getMyAssets,
+  const { selectedWalletId } = useWalletStore()
+  const currentYear = new Date().getFullYear()
+
+  const { data: items = [], isLoading, isFetching } = useQuery({
+    queryKey: ['my-assets', selectedWalletId],
+    queryFn: () => selectedWalletId ? getWalletAssets(selectedWalletId) : getMyAssets(),
+    placeholderData: (prev) => prev,
   })
 
   const { data: usdRate = 1 } = useQuery({
@@ -537,20 +562,11 @@ export default function DashboardPage() {
     staleTime: 5 * 60 * 1000,
   })
 
-  const { data: wallets = [] } = useQuery({
-    queryKey: ['wallets'],
-    queryFn: () => getWallets(),
-  })
-
-  const currentYear = new Date().getFullYear()
-
   const { data: dividends = [] } = useQuery({
-    queryKey: ['dividend-entries'],
-    queryFn: () => getDividendEntries(),
+    queryKey: ['dividend-entries', selectedWalletId],
+    queryFn: () => getDividendEntries(selectedWalletId ? { walletId: selectedWalletId } : {}),
+    placeholderData: (prev) => prev,
   })
-
-  const [selectedWalletId, setSelectedWalletId] = useState<string>('')
-  const walletId = selectedWalletId ? Number(selectedWalletId) : wallets[0]?.id ?? 0
 
   const totalBrl = items.reduce((s, wa) => s + currentValueBrl(wa, usdRate), 0)
   const totalUsd = items.reduce((s, wa) => {
@@ -565,18 +581,30 @@ export default function DashboardPage() {
     (wa) => wa.incomeType === 'FIXED' ? 'Fixed' : wa.incomeType === 'VARIABLE' ? 'Variable' : 'N/A',
     usdRate
   )
-  const byAssetType = groupBy(items, (wa) => wa.assetTypeName ?? 'N/A', usdRate)
+  const byAssetType  = groupBy(items, (wa) => wa.assetTypeName ?? 'N/A', usdRate)
+  const bySegment    = groupBy(items, (wa) => wa.segmentName ?? 'N/A', usdRate)
+  const bySector     = groupBy(items, (wa) => wa.sectorName  ?? 'N/A', usdRate)
+  const reitItems    = items.filter((wa) => wa.categoryName?.toLowerCase().includes('reit'))
+  const byAssetTypeReit = groupBy(reitItems, (wa) => wa.assetTypeName ?? 'N/A', usdRate)
+  const bySectorReit    = groupBy(reitItems, (wa) => wa.sectorName    ?? 'N/A', usdRate)
+  const totalBrlReit = reitItems.reduce((s, wa) => s + currentValueBrl(wa, usdRate), 0)
+  const totalUsdReit = reitItems.reduce((s, wa) => {
+    const r = isUsd(wa.countryAcronym) ? 1 : 1 / usdRate
+    return s + (wa.currentPrice ?? 0) * (wa.quantity ?? 0) * r
+  }, 0)
   const byArca      = arcaGroupBy(items, usdRate)
 
-  if (isLoading) {
+  if (isLoading && items.length === 0) {
     return <div className="p-6"><p className="text-muted-foreground text-sm">Loading...</p></div>
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className={`p-6 space-y-6 ${isFetching ? 'opacity-80 transition-opacity' : ''}`}>
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground text-sm mt-1">Portfolio overview</p>
+        <p className="text-muted-foreground text-sm mt-1">
+          {selectedWalletId ? 'Showing data for selected wallet' : 'All wallets · Select a wallet in the sidebar to filter'}
+        </p>
       </div>
 
       {/* Summary stats */}
@@ -610,100 +638,100 @@ export default function DashboardPage() {
       </div>
 
       {/* Strategy vs actual allocation */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-muted-foreground">Compare wallet:</span>
-          <Select
-            value={selectedWalletId || String(wallets[0]?.id ?? '')}
-            onValueChange={(v) => setSelectedWalletId(v ?? '')}
-          >
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Select wallet">
-                {(() => {
-                  const id = selectedWalletId || String(wallets[0]?.id ?? '')
-                  const w = wallets.find((w) => String(w.id) === id)
-                  return w ? (w.name ?? `Wallet #${w.id}`) : null
-                })()}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {wallets.map((w) => (
-                <SelectItem key={w.id} value={String(w.id)}>
-                  {w.name ?? `Wallet #${w.id}`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
+      {selectedWalletId ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Strategy vs Actual — By Category</CardTitle>
             </CardHeader>
             <CardContent>
-              <AllocationComparisonChart walletId={walletId} items={items} usdRate={usdRate} mode="category" />
+              <AllocationComparisonChart walletId={selectedWalletId} items={items} usdRate={usdRate} mode="category" />
             </CardContent>
           </Card>
-
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Strategy vs Actual — By Country</CardTitle>
             </CardHeader>
             <CardContent>
-              <AllocationComparisonChart walletId={walletId} items={items} usdRate={usdRate} mode="country" />
+              <AllocationComparisonChart walletId={selectedWalletId} items={items} usdRate={usdRate} mode="country" />
             </CardContent>
           </Card>
         </div>
-      </div>
-
-      {/* Dividend charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      ) : (
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Dividends by Category</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DividendPieChart dividends={dividends} usdRate={usdRate} />
+          <CardContent className="py-8 text-center text-muted-foreground text-sm">
+            Select a wallet in the sidebar to see strategy vs actual allocation.
           </CardContent>
         </Card>
+      )}
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Dividend Origin — BR vs US</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DividendOriginChart dividends={dividends} usdRate={usdRate} />
-          </CardContent>
-        </Card>
+      {/* Tabbed charts */}
+      <Tabs defaultValue="general">
+        <TabsList>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="dividend">Dividend</TabsTrigger>
+          <TabsTrigger value="international">International</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Monthly Dividend Flow — {currentYear}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DividendLineChart dividends={dividends} usdRate={usdRate} year={currentYear} />
-          </CardContent>
-        </Card>
+        <TabsContent value="general">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+            <ChartCard key={`arca-${selectedWalletId ?? 'all'}`}    title="ARCA Strategy"  data={byArca}     total={totalBrl} colorMap={ARCA_COLORS} />
+            <ChartCard key={`cat-${selectedWalletId ?? 'all'}`}     title="By Category"    data={byCategory} total={totalBrl} />
+            <ChartCard key={`country-${selectedWalletId ?? 'all'}`} title="By Country"     data={byCountry}  total={totalBrl} />
+            <ChartCard key={`income-${selectedWalletId ?? 'all'}`}  title="By Income Type" data={byIncome}   total={totalBrl} />
+            <ChartCard key={`atype-${selectedWalletId ?? 'all'}`}    title="By Asset Type"  data={byAssetType} total={totalBrl} />
+            <ChartCard key={`seg-${selectedWalletId ?? 'all'}`}     title="By Segment"     data={bySegment}  total={totalBrl} />
+            <ChartCard key={`sec-${selectedWalletId ?? 'all'}`}     title="By Sector"      data={bySector}   total={totalBrl} />
+          </div>
+        </TabsContent>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Dividends by Category — {currentYear}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DividendLineByCategoryChart dividends={dividends} usdRate={usdRate} year={currentYear} />
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="dividend">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Monthly Dividend Flow — {currentYear}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DividendLineChart key={`line-${selectedWalletId ?? 'all'}`} dividends={dividends} usdRate={usdRate} year={currentYear} />
+              </CardContent>
+            </Card>
 
-      {/* Breakdown doughnut charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="ARCA Strategy"  data={byArca}      total={totalBrl} colorMap={ARCA_COLORS} />
-        <ChartCard title="By Category"    data={byCategory}  total={totalBrl} />
-        <ChartCard title="By Country"     data={byCountry}   total={totalBrl} />
-        <ChartCard title="By Income Type" data={byIncome}    total={totalBrl} />
-        <ChartCard title="By Asset Type"  data={byAssetType} total={totalBrl} />
-      </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Dividends by Category — {currentYear}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DividendLineByCategoryChart key={`linecat-${selectedWalletId ?? 'all'}`} dividends={dividends} usdRate={usdRate} year={currentYear} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Dividends by Category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DividendPieChart key={`pie-${selectedWalletId ?? 'all'}`} dividends={dividends} usdRate={usdRate} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Dividend Origin — BR vs US</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DividendOriginChart key={`origin-${selectedWalletId ?? 'all'}`} dividends={dividends} usdRate={usdRate} />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="international">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+            <ChartCard key={`atype-reit-${selectedWalletId ?? 'all'}`} title={`By Asset Type — REIT · R$ ${fmt(totalBrlReit)} / $ ${fmtUsd(totalUsdReit)}`} data={byAssetTypeReit} total={totalBrlReit} />
+            <ChartCard key={`sec-reit-${selectedWalletId ?? 'all'}`}   title={`By Sector — REIT · R$ ${fmt(totalBrlReit)} / $ ${fmtUsd(totalUsdReit)}`}       data={bySectorReit}    total={totalBrlReit} />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

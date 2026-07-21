@@ -28,7 +28,7 @@ const INCOME_TYPE_ITEMS = [
 
 const schema = z.object({
   name: z.string().min(2).max(200),
-  ticket: z.string().min(2).max(10),
+  ticket: z.string().min(1).max(10),
   description: z.string().min(2).max(250).optional(),
   country: z.coerce.number().int().positive(),
   category: z.coerce.number().int().positive(),

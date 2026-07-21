@@ -25,4 +25,12 @@ public class SegmentService {
         return segmentRepository.findById(id);
     }
 
+    public Segment save(Segment segment) {
+        return segmentRepository.save(segment);
+    }
+
+    public void delete(Integer id) {
+        segmentRepository.deleteById(id);
+    }
+
 }

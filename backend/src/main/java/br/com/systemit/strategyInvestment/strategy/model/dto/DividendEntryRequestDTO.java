@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public record DividendEntryRequestDTO(
+        Integer walletId,
         @NotBlank String category,
         @NotNull @Min(1) @Max(12) Integer month,
         @NotNull Integer year,

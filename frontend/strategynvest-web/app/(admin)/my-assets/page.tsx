@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { Fragment, useState, useRef } from 'react'
 import * as XLSX from 'xlsx'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   getMyAssets,
-  getWallets,
+  getWalletAssets,
   getAssets,
   addWalletAsset,
   removeWalletAsset,
@@ -14,6 +14,7 @@ import {
   getUsdBrlRate,
 } from '@/lib/api'
 import type { WalletAsset } from '@/lib/types'
+import { useWalletStore } from '@/lib/stores/wallet-store'
 import { Pencil, Trash2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,13 +28,6 @@ import {
   DialogTitle,
   DialogClose,
 } from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 function fmt(n?: number | null) {
   if (n == null) return '—'
@@ -48,17 +42,24 @@ function diffColor(diff?: number | null) {
 const USD_ACRONYMS = new Set(['US', 'USA', 'EUA'])
 const isUsd = (acronym?: string) => acronym != null && USD_ACRONYMS.has(acronym.toUpperCase())
 
+const norm = (s: string) => s.toLowerCase().replace(/[-_]/g, ' ').trim()
+
+// Explicit mappings for tickers whose names differ between the broker export and the system catalogue.
+// Key: norm(Excel ticker)  →  Value: norm(system ticket or name)
+const TICKER_ALIASES: Record<string, string> = {
+  'tesouro ipca 2045': 'tesouro ipca 2045',
+  'tesouro ipca juros 2026': 'tesouro ipca com juros semestrais 2026',
+  'tesouro ipca com juros semestrais 2026': 'tesouro ipca juros 2026',
+  'tesouro prefixado com juros semestrais 2029': 'tesouro prefixado juros 2029',
+}
+
 export default function MyAssetsPage() {
   const queryClient = useQueryClient()
+  const { selectedWalletId } = useWalletStore()
 
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ['my-assets'],
-    queryFn: getMyAssets,
-  })
-
-  const { data: wallets = [] } = useQuery({
-    queryKey: ['wallets'],
-    queryFn: () => getWallets(),
+    queryKey: ['my-assets', selectedWalletId],
+    queryFn: () => selectedWalletId ? getWalletAssets(selectedWalletId) : getMyAssets(),
   })
 
   const { data: allAssets = [] } = useQuery({
@@ -114,6 +115,7 @@ export default function MyAssetsPage() {
     onSuccess: () => {
       toast.success('Position updated')
       queryClient.invalidateQueries({ queryKey: ['my-assets'] })
+
       setEditing(null)
     },
     onError: () => toast.error('Failed to update position'),
@@ -121,21 +123,25 @@ export default function MyAssetsPage() {
 
   // ── Import dialog ──────────────────────────────────────────────────────────
   const [importOpen, setImportOpen] = useState(false)
-  const [importWalletId, setImportWalletId] = useState<string>('')
   const [importing, setImporting] = useState(false)
+  const [preview, setPreview] = useState<{ missing: string[]; file: File } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file || !importWalletId) return
-    const walletId = Number(importWalletId)
+  function closeImport() {
+    setImportOpen(false)
+    setPreview(null)
+  }
 
-    setImporting(true)
+  // Step 1: parse the file client-side and check tickets against the catalogue
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !selectedWalletId) return
+
     try {
       const buffer = await file.arrayBuffer()
       const wb = XLSX.read(buffer)
 
-      // Collect data rows from all sheets (skip header row 0 per sheet)
       const dataRows: unknown[][] = []
       for (const sheetName of wb.SheetNames) {
         const ws = wb.Sheets[sheetName]
@@ -143,11 +149,55 @@ export default function MyAssetsPage() {
         if (sheetRows.length > 1) dataRows.push(...sheetRows.slice(1))
       }
 
-      // Normalize: lowercase, replace dashes/underscores with spaces
-      // e.g. "tesouro-selic-2025" === "Tesouro Selic 2025"
-      const norm = (s: string) => s.toLowerCase().replace(/[-_]/g, ' ').trim()
+      const missing: string[] = []
+      for (const rawRow of dataRows) {
+        const row = rawRow as unknown[]
+        const rawTicket = String(row[0] ?? '').trim()
+        if (!rawTicket) continue
+        const ticketUpper = rawTicket.toUpperCase()
+        const ticketNorm = norm(rawTicket)
+        const patrimony = Number(row[6])
+        if (!isNaN(patrimony) && patrimony === 0) continue
 
-      // columns: 0=ATIVO, 2=PREÇO MÉDIO, 3=PREÇO ATUAL, 5=QUANTIDADE
+        const inWallet = items.some(
+          (w) => w.assetTicket.toUpperCase() === ticketUpper || norm(w.assetTicket) === ticketNorm
+        )
+        if (inWallet) continue
+
+        const alias = TICKER_ALIASES[ticketNorm]
+        const inCatalogue = allAssets.some(
+          (a) =>
+            a.ticket.toUpperCase() === ticketUpper ||
+            norm(a.ticket) === ticketNorm ||
+            norm(a.name) === ticketNorm ||
+            (alias != null && (norm(a.ticket) === alias || norm(a.name) === alias))
+        )
+        if (!inCatalogue) missing.push(rawTicket)
+      }
+
+      setPreview({ missing, file })
+    } catch {
+      toast.error('Failed to read file. Make sure it is a valid .xlsx file.')
+    }
+  }
+
+  // Step 2: run the actual import using the already-parsed file
+  async function runImport() {
+    if (!preview?.file || !selectedWalletId) return
+    const walletId = selectedWalletId
+
+    setImporting(true)
+    try {
+      const buffer = await preview.file.arrayBuffer()
+      const wb = XLSX.read(buffer)
+
+      const dataRows: unknown[][] = []
+      for (const sheetName of wb.SheetNames) {
+        const ws = wb.Sheets[sheetName]
+        const sheetRows = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1 })
+        if (sheetRows.length > 1) dataRows.push(...sheetRows.slice(1))
+      }
+
       const updateTasks: Promise<WalletAsset>[] = []
       let updated = 0
       let linked = 0
@@ -161,53 +211,40 @@ export default function MyAssetsPage() {
         const ticketNorm = norm(rawTicket)
 
         const patrimony = Number(row[6])
-        const mediumPrice = Number(row[2])
-        const currentPrice = Number(row[3])
-        const quantity = Number(row[5])
         const positionData = {
-          quantity: isNaN(quantity) ? undefined : quantity,
-          mediumPrice: isNaN(mediumPrice) ? undefined : mediumPrice,
-          currentPrice: isNaN(currentPrice) ? undefined : currentPrice,
+          quantity:    isNaN(Number(row[5])) ? undefined : Number(row[5]),
+          mediumPrice: isNaN(Number(row[2])) ? undefined : Number(row[2]),
+          currentPrice: isNaN(Number(row[3])) ? undefined : Number(row[3]),
         }
 
-        // Match existing wallet-asset by ticket (exact) or normalized ticket/name
-        const existing = items.find((w) =>
-          w.assetTicket.toUpperCase() === ticketUpper ||
-          norm(w.assetTicket) === ticketNorm
+        const existing = items.find(
+          (w) => w.assetTicket.toUpperCase() === ticketUpper || norm(w.assetTicket) === ticketNorm
         )
 
-        // PATRIMÔNIO ATUAL = 0 → remove if linked, skip if not
         if (!isNaN(patrimony) && patrimony === 0) {
-          if (existing && existing.walletId != null) {
-            updateTasks.push(
-              removeWalletAsset(existing.walletId, existing.id).then(() => existing)
-            )
-          }
+          if (existing && existing.walletId != null)
+            updateTasks.push(removeWalletAsset(existing.walletId, existing.id).then(() => existing))
           continue
         }
 
         if (existing && existing.walletId != null) {
-          // Already linked — just update position
           updated++
           updateTasks.push(updateWalletAssetPosition(existing.walletId, existing.id, positionData))
         } else {
-          // Not linked yet — find in assets catalogue by ticket or name (normalized)
-          const asset = allAssets.find((a) =>
-            a.ticket.toUpperCase() === ticketUpper ||
-            norm(a.ticket) === ticketNorm ||
-            norm(a.name) === ticketNorm
+          const alias = TICKER_ALIASES[ticketNorm]
+          const asset = allAssets.find(
+            (a) =>
+              a.ticket.toUpperCase() === ticketUpper ||
+              norm(a.ticket) === ticketNorm ||
+              norm(a.name) === ticketNorm ||
+              (alias != null && (norm(a.ticket) === alias || norm(a.name) === alias))
           )
-          if (!asset) {
-            notInSystem.push(rawTicket)
-            continue
-          }
+          if (!asset) { notInSystem.push(rawTicket); continue }
           linked++
-          // Sequential: link first, then update position with the new wallet-asset id
           try {
             const wa = await addWalletAsset(walletId, asset.id)
             updateTasks.push(updateWalletAssetPosition(walletId, wa.id, positionData))
           } catch {
-            // May already be linked (409) — try to refresh and match
             notInSystem.push(rawTicket)
           }
         }
@@ -219,7 +256,7 @@ export default function MyAssetsPage() {
       const parts: string[] = []
       if (updated > 0) parts.push(`${updated} updated`)
       if (linked > 0) parts.push(`${linked} newly linked`)
-      if (notInSystem.length > 0) parts.push(`${notInSystem.length} not in system: ${notInSystem.join(', ')}`)
+      if (notInSystem.length > 0) parts.push(`${notInSystem.length} skipped (not in system)`)
 
       if (updated + linked > 0) {
         toast.success(parts.join(' · '))
@@ -227,12 +264,11 @@ export default function MyAssetsPage() {
         toast.warning(parts.join(' · ') || 'No matching assets found in file.')
       }
 
-      setImportOpen(false)
+      closeImport()
     } catch {
-      toast.error('Failed to read file. Make sure it is a valid .xlsx file.')
+      toast.error('Failed to import. Make sure the backend is running.')
     } finally {
       setImporting(false)
-      e.target.value = ''
     }
   }
 
@@ -315,8 +351,8 @@ export default function MyAssetsPage() {
                       return s + (r.currentPrice ?? 0) * (r.quantity ?? 0) * rate
                     }, 0)
                     return (
-                      <>
-                        <tr key={`cat-${category}`} className="bg-muted/30">
+                      <Fragment key={`cat-${category}`}>
+                        <tr className="bg-muted/30">
                           <td className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                             {category}
                           </td>
@@ -414,6 +450,7 @@ export default function MyAssetsPage() {
                                       if (wa.walletId != null) {
                                         removeWalletAsset(wa.walletId, wa.id).then(() => {
                                           queryClient.invalidateQueries({ queryKey: ['my-assets'] })
+
                                         })
                                       }
                                     }}
@@ -425,7 +462,7 @@ export default function MyAssetsPage() {
                             </tr>
                           )
                         })}
-                      </>
+                      </Fragment>
                     )
                   })}
                 </tbody>
@@ -447,52 +484,74 @@ export default function MyAssetsPage() {
       </Card>
 
       {/* Import dialog */}
-      <Dialog open={importOpen} onOpenChange={(open) => { if (!open) setImportOpen(false) }}>
+      <Dialog open={importOpen} onOpenChange={(open) => { if (!open) closeImport() }}>
         <DialogPortal>
           <DialogOverlay />
           <DialogContent className="max-w-sm">
             <DialogTitle>Import from Excel</DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Tickers already in your portfolio will have their positions updated.
-              New tickers found in your assets catalogue will be linked to the selected wallet.
-            </p>
-            <div className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label>Wallet for new assets</Label>
-                <Select value={importWalletId} onValueChange={(v) => setImportWalletId(v ?? '')}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a wallet">
-                      {importWalletId
-                        ? (wallets.find((w) => String(w.id) === importWalletId)?.name ?? `Wallet #${importWalletId}`)
-                        : null}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {wallets.map((w) => (
-                      <SelectItem key={w.id} value={String(w.id)}>
-                        {w.name ?? `Wallet #${w.id}`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex gap-2 justify-end pt-2">
-                <DialogClose render={<Button variant="outline">Cancel</Button>} />
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".xlsx,.xls"
-                  className="hidden"
-                  onChange={handleImport}
-                />
-                <Button
-                  disabled={!importWalletId || importing}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {importing ? 'Importing...' : 'Choose File'}
-                </Button>
-              </div>
-            </div>
+
+            {!selectedWalletId ? (
+              <>
+                <p className="text-sm text-destructive mt-2">
+                  No wallet selected. Select a wallet in the sidebar before importing.
+                </p>
+                <div className="flex justify-end mt-6">
+                  <DialogClose render={<Button variant="outline">Close</Button>} />
+                </div>
+              </>
+            ) : !preview ? (
+              <>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Tickers already in your portfolio will have their positions updated.
+                  New tickers will be linked to the currently selected wallet.
+                </p>
+                <div className="flex gap-2 justify-end mt-6">
+                  <DialogClose render={<Button variant="outline">Cancel</Button>} />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                  <Button onClick={() => fileInputRef.current?.click()}>
+                    Choose File
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                {preview.missing.length > 0 ? (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-sm font-medium text-destructive">
+                      {preview.missing.length} ticket{preview.missing.length !== 1 ? 's' : ''} not found in the system:
+                    </p>
+                    <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 max-h-48 overflow-y-auto">
+                      <ul className="space-y-1">
+                        {preview.missing.map((t) => (
+                          <li key={t} className="font-mono text-sm text-destructive">{t}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Add them at <strong>/assets</strong> first, or proceed to import only the tickets already in the system.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    All tickets found in the system. Ready to import.
+                  </p>
+                )}
+                <div className="flex gap-2 justify-end mt-4">
+                  <Button variant="outline" onClick={() => setPreview(null)}>
+                    Back
+                  </Button>
+                  <Button onClick={runImport} disabled={importing}>
+                    {importing ? 'Importing…' : preview.missing.length > 0 ? 'Proceed anyway' : 'Import'}
+                  </Button>
+                </div>
+              </>
+            )}
           </DialogContent>
         </DialogPortal>
       </Dialog>

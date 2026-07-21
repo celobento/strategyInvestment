@@ -15,6 +15,10 @@ public class DividendEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wallet_id")
+    private Wallet wallet;
+
     @Column(nullable = false, length = 100)
     private String category;
 

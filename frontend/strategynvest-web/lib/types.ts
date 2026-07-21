@@ -109,11 +109,43 @@ export interface WalletStrategy {
 
 export interface DividendEntry {
   id: number
+  walletId?: number | null
   category: string
   month: number
   year: number
   value: number
   currency: string
+  createdAt?: string
+}
+
+export interface FiiAnalysis {
+  id: number
+  dataCadastro?: string
+  ticket: string
+  nome?: string
+  segmento?: string
+  valorAtual?: number
+  dividendYield?: number
+  precoValorPatrimonial?: number
+  fatorRenda?: number
+  rendimentoUltimos12m?: number
+  rendimentoMedioUltimos12m?: number
+  rendimentoMensalMedio24m?: number
+  liquidezMediaDiaria?: number
+  ultimoRendimento?: number
+  dataPagamentoUltimoRendimento?: string
+  proximoRendimento?: number
+  dataPagamentoProximoRendimento?: string
+}
+
+export interface Goal {
+  id: number
+  description: string
+  goalValue: number
+  limitDate: string
+  startDate: string
+  monthlyRate: number
+  initialBalance: number
   createdAt?: string
 }
 

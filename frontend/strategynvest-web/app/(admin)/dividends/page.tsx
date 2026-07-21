@@ -9,6 +9,7 @@ import {
   getDividendEntries, createDividendEntry, updateDividendEntry, deleteDividendEntry,
 } from '@/lib/api'
 import type { DividendEntry } from '@/lib/types'
+import { useWalletStore } from '@/lib/stores/wallet-store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -63,6 +64,7 @@ const EMPTY_FORM: FormState = {
 
 export default function DividendsPage() {
   const qc = useQueryClient()
+  const { selectedWalletId } = useWalletStore()
 
   // ── Add / Edit dialog ───────────────────────────────────────────────────────
   const [open, setOpen] = useState(false)
@@ -78,9 +80,14 @@ export default function DividendsPage() {
   // ── Filter ──────────────────────────────────────────────────────────────────
   const [yearFilter, setYearFilter] = useState<string>('')
 
+  const queryParams = {
+    ...(selectedWalletId ? { walletId: selectedWalletId } : {}),
+    ...(yearFilter ? { year: Number(yearFilter) } : {}),
+  }
+
   const { data: entries = [], isLoading } = useQuery({
-    queryKey: ['dividend-entries', yearFilter],
-    queryFn: () => getDividendEntries(yearFilter ? Number(yearFilter) : undefined),
+    queryKey: ['dividend-entries', selectedWalletId, yearFilter],
+    queryFn: () => getDividendEntries(queryParams),
   })
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['dividend-entries'] })
@@ -121,6 +128,7 @@ export default function DividendsPage() {
 
   function handleSave() {
     const payload = {
+      walletId: selectedWalletId ?? null,
       category: form.category.trim(),
       month: Number(form.month),
       year: Number(form.year),
@@ -177,7 +185,10 @@ export default function DividendsPage() {
       // Fetch existing entries so we can upsert
       let existing: DividendEntry[] = []
       try {
-        existing = await getDividendEntries(year)
+        existing = await getDividendEntries({
+          year,
+          ...(selectedWalletId ? { walletId: selectedWalletId } : {}),
+        })
       } catch (apiErr) {
         console.error('Failed to fetch existing entries:', apiErr)
         toast.error('Could not reach the API. Make sure the backend is running.')
@@ -196,7 +207,7 @@ export default function DividendsPage() {
       // Run all upserts in parallel, counting successes/failures individually
       const results = await Promise.allSettled(
         cells.map(({ category, month, value }) => {
-          const payload = { category, month, year, value, currency: 'BRL' }
+          const payload = { walletId: selectedWalletId ?? null, category, month, year, value, currency: 'BRL' }
           const existingEntry = existingMap.get(`${category}__${month}`)
           return existingEntry
             ? updateDividendEntry(existingEntry.id, payload)
@@ -436,7 +447,9 @@ export default function DividendsPage() {
             <p className="text-muted-foreground text-sm p-6">Loading…</p>
           ) : entries.length === 0 ? (
             <p className="text-muted-foreground text-sm p-6">
-              No entries yet. Use <strong>Import Excel</strong> or <strong>Add Dividend</strong> to get started.
+              {selectedWalletId
+                ? <>No dividends for this wallet yet. Select the wallet above and use <strong>Import Excel</strong> or <strong>Add Dividend</strong> to assign entries to it.</>
+                : <>No entries yet. Use <strong>Import Excel</strong> or <strong>Add Dividend</strong> to get started.</>}
             </p>
           ) : (
             <Table>

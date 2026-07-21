@@ -17,6 +17,9 @@ import {
   Globe,
   Users,
   LogOut,
+  BarChart2,
+  Target,
+  Layers,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -32,6 +35,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { WalletSwitcher } from '@/components/WalletSwitcher'
 
 const topItems = [
   { label: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -39,6 +43,11 @@ const topItems = [
   { label: 'Dividends', href: '/dividends', icon: DollarSign },
   { label: 'Wallets', href: '/wallets', icon: Wallet },
   { label: 'Revisions', href: '/revisions', icon: FileText },
+  { label: 'Goals', href: '/goals', icon: Target },
+]
+
+const analysisItems = [
+  { label: 'FII', href: '/analysisFii', icon: BarChart2 },
 ]
 
 const settingsItems = [
@@ -46,6 +55,7 @@ const settingsItems = [
   { label: 'Asset Types', href: '/asset-types', icon: Tag },
   { label: 'Categories', href: '/categories', icon: LayoutGrid },
   { label: 'Sectors', href: '/sectors', icon: Building2 },
+  { label: 'Segments', href: '/segments', icon: Layers },
   { label: 'Brokers', href: '/brokers', icon: Briefcase },
   { label: 'Countries', href: '/countries', icon: Globe },
   { label: 'Users', href: '/users', icon: Users },
@@ -59,29 +69,9 @@ export default function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      {/* Logo */}
+      {/* Wallet switcher */}
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<Link href="/" />} isActive={false}>
-              <div
-                className="flex aspect-square size-8 items-center justify-center rounded-lg"
-                style={{ backgroundColor: '#00250c' }}
-              >
-                <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="#6ba513" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-                  <polyline points="16 7 22 7 22 13" />
-                </svg>
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold" style={{ color: '#001c1f' }}>
-                  Strategy<span style={{ color: '#6ba513' }}>Invest</span>
-                </span>
-                <span className="truncate text-xs text-sidebar-foreground/50">Admin Panel</span>
-              </div>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <WalletSwitcher />
       </SidebarHeader>
 
       {/* Nav */}
@@ -92,6 +82,29 @@ export default function AppSidebar() {
             <SidebarMenu>
               {topItems.map((item) => {
                 const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      render={<Link href={item.href} />}
+                      isActive={active}
+                      tooltip={item.label}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Analysis</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {analysisItems.map((item) => {
+                const active = pathname.startsWith(item.href)
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton

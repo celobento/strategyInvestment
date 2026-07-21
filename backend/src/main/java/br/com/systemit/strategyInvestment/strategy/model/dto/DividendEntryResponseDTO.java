@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 public record DividendEntryResponseDTO(
         Integer id,
+        Integer walletId,
         String category,
         Integer month,
         Integer year,

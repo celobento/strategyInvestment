@@ -67,6 +67,14 @@ export const createCountry = (data: { name: string; acronym: string }) =>
 export const getSegments = () =>
   api.get<Segment[]>('/segments').then((r) => r.data)
 
+export const createSegment = (data: { name: string; description?: string }) =>
+  api.post<Segment>('/segments', data).then((r) => r.data)
+
+export const updateSegment = (id: number, data: { name: string; description?: string }) =>
+  api.put<Segment>(`/segments/${id}`, data).then((r) => r.data)
+
+export const deleteSegment = (id: number) => api.delete(`/segments/${id}`)
+
 // ── Assets ────────────────────────────────────────────────────────────────────
 export const getAssets = (name?: string) =>
   api.get<Asset[]>('/assets', { params: name ? { name } : {} }).then((r) => r.data)
@@ -174,18 +182,49 @@ export const removeWalletStrategy = (walletId: number, walletStrategyId: number)
   api.delete(`/wallets/${walletId}/strategies/${walletStrategyId}`)
 
 // ── Dividend Entries ──────────────────────────────────────────────────────────
-export const getDividendEntries = (year?: number) =>
-  api.get<import('./types').DividendEntry[]>('/dividend-entries', { params: year ? { year } : {} }).then((r) => r.data)
+export const getDividendEntries = (params?: { walletId?: number; year?: number }) =>
+  api.get<import('./types').DividendEntry[]>('/dividend-entries', { params }).then((r) => r.data)
 
 export const createDividendEntry = (data: {
-  category: string; month: number; year: number; value: number; currency: string
+  walletId?: number | null; category: string; month: number; year: number; value: number; currency: string
 }) => api.post<import('./types').DividendEntry>('/dividend-entries', data).then((r) => r.data)
 
 export const updateDividendEntry = (id: number, data: {
-  category: string; month: number; year: number; value: number; currency: string
+  walletId?: number | null; category: string; month: number; year: number; value: number; currency: string
 }) => api.put<import('./types').DividendEntry>(`/dividend-entries/${id}`, data).then((r) => r.data)
 
 export const deleteDividendEntry = (id: number) => api.delete(`/dividend-entries/${id}`)
+
+// ── FII Analysis ──────────────────────────────────────────────────────────────
+export const getFiiAnalysis = (params?: { segmento?: string }) =>
+  api.get<import('./types').FiiAnalysis[]>('/fii-analysis', { params }).then((r) => r.data)
+
+export interface FiiSyncStatus {
+  running: boolean
+  processed: number
+  total: number
+  updated: number
+  failed: number
+  failedTickets: string[]
+}
+
+export const startFiiSync = () =>
+  api.post<FiiSyncStatus>('/fii-analysis/sync').then((r) => r.data)
+
+export const getFiiSyncStatus = () =>
+  api.get<FiiSyncStatus>('/fii-analysis/sync/status').then((r) => r.data)
+
+// ── Goals ─────────────────────────────────────────────────────────────────────
+export const getGoals = () =>
+  api.get<import('./types').Goal[]>('/goals').then((r) => r.data)
+
+export const createGoal = (data: Omit<import('./types').Goal, 'id' | 'createdAt'>) =>
+  api.post<import('./types').Goal>('/goals', data).then((r) => r.data)
+
+export const updateGoal = (id: number, data: Omit<import('./types').Goal, 'id' | 'createdAt'>) =>
+  api.put<import('./types').Goal>(`/goals/${id}`, data).then((r) => r.data)
+
+export const deleteGoal = (id: number) => api.delete(`/goals/${id}`)
 
 // ── Exchange rates ────────────────────────────────────────────────────────────
 export const getUsdBrlRate = (): Promise<number> =>

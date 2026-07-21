@@ -10,4 +10,8 @@ public interface DividendEntryRepository extends JpaRepository<DividendEntry, In
     List<DividendEntry> findByYearOrderByMonthAscCategoryAsc(Integer year);
 
     List<DividendEntry> findAllByOrderByYearDescMonthDescCategoryAsc();
+
+    List<DividendEntry> findByWalletIdOrderByYearDescMonthDescCategoryAsc(Integer walletId);
+
+    List<DividendEntry> findByWalletIdAndYearOrderByMonthAscCategoryAsc(Integer walletId, Integer year);
 }
