@@ -39,6 +39,8 @@ public abstract class AssetMapper {
     @Mapping(target = "navEstimated", ignore = true)
     @Mapping(target = "premiumDiscount", ignore = true)
     @Mapping(target = "indicator", ignore = true)
+    @Mapping(target = "dividendYield", source = "dividendYield")
+    @Mapping(target = "dividendMonths", source = "dividendMonths")
     @Mapping(target = "country", expression = "java( countryRepository.findById(dto.country()).orElse(null)) ")
     @Mapping(target = "category", expression = "java( categoryRepository.findById(dto.category()).orElse(null)) ")
     @Mapping(target = "sector", expression = "java( sectorRepository.findById(dto.sector()).orElse(null)) ")

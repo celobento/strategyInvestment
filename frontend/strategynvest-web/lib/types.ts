@@ -54,6 +54,8 @@ export interface Asset {
   navEstimated?: number
   premiumDiscount?: number
   indicator?: string
+  dividendYield?: number
+  dividendMonths?: string[]
   createdDate?: string
   updatedDate?: string
 }
@@ -95,6 +97,8 @@ export interface WalletAsset {
   assetTypeName?: string
   indicator?: string
   ceilingPrice?: number
+  dividendYield?: number
+  dividendMonths?: string[]
 }
 
 export interface WalletStrategy {
@@ -136,6 +140,33 @@ export interface FiiAnalysis {
   dataPagamentoUltimoRendimento?: string
   proximoRendimento?: number
   dataPagamentoProximoRendimento?: string
+}
+
+export interface ReitsAnalysis {
+  id: number
+  dataCadastro?: string
+  ticket: string
+  sector?: string
+  valorAtual?: number
+  dividendYield?: number
+  marketCap?: number
+}
+
+export interface AcoesAnalysis {
+  id: number
+  dataCadastro?: string
+  ticket: string
+  setor?: string
+  segmento?: string
+  valorAtual?: number
+  dividendYield?: number
+  pvp?: number
+  fatorRenda?: number
+  ultimoRendimento?: number
+  rendimento12m?: number
+  rendimentoMedio12m?: number
+  rendimentoMensalMedio24m?: number
+  liquidezMediaDiaria?: number
 }
 
 export interface Goal {

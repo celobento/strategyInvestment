@@ -25,5 +25,9 @@ public record AssetCreateRequestDTO(
 
                 IncomeType incomeType,
 
-                Integer assetTypeId) {
+                Integer assetTypeId,
+
+                java.math.BigDecimal dividendYield,
+
+                java.util.List<String> dividendMonths) {
 }

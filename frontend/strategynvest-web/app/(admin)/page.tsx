@@ -584,6 +584,13 @@ export default function DashboardPage() {
   const byAssetType  = groupBy(items, (wa) => wa.assetTypeName ?? 'N/A', usdRate)
   const bySegment    = groupBy(items, (wa) => wa.segmentName ?? 'N/A', usdRate)
   const bySector     = groupBy(items, (wa) => wa.sectorName  ?? 'N/A', usdRate)
+  const intlItems    = items.filter((wa) => wa.countryAcronym?.toUpperCase() !== 'BR')
+  const byCategoryIntl  = groupBy(intlItems, (wa) => wa.categoryName ?? 'Uncategorized', usdRate)
+  const totalBrlIntl = intlItems.reduce((s, wa) => s + currentValueBrl(wa, usdRate), 0)
+  const totalUsdIntl = intlItems.reduce((s, wa) => {
+    const r = isUsd(wa.countryAcronym) ? 1 : 1 / usdRate
+    return s + (wa.currentPrice ?? 0) * (wa.quantity ?? 0) * r
+  }, 0)
   const reitItems    = items.filter((wa) => wa.categoryName?.toLowerCase().includes('reit'))
   const byAssetTypeReit = groupBy(reitItems, (wa) => wa.assetTypeName ?? 'N/A', usdRate)
   const bySectorReit    = groupBy(reitItems, (wa) => wa.sectorName    ?? 'N/A', usdRate)
@@ -593,6 +600,22 @@ export default function DashboardPage() {
     return s + (wa.currentPrice ?? 0) * (wa.quantity ?? 0) * r
   }, 0)
   const byArca      = arcaGroupBy(items, usdRate)
+
+  // Avg yield cards — weighted average of asset.dividendYield by current portfolio value
+  function weightedYield(subset: typeof items) {
+    const withYield = subset.filter((wa) => wa.dividendYield != null && wa.dividendYield > 0)
+    const totalValue = withYield.reduce((s, wa) => s + currentValueBrl(wa, usdRate), 0)
+    if (totalValue === 0) return 0
+    return withYield.reduce((s, wa) => s + (wa.dividendYield! * currentValueBrl(wa, usdRate)), 0) / totalValue
+  }
+  const brItems   = items.filter((wa) => wa.countryAcronym?.toUpperCase() === 'BR')
+  const intlItems2 = items.filter((wa) => wa.countryAcronym?.toUpperCase() !== 'BR')
+  const yieldBr   = weightedYield(brItems)
+  const yieldIntl = weightedYield(intlItems2)
+  const yieldAll  = weightedYield(items)
+  const brCount   = brItems.filter(   (wa) => wa.dividendYield != null && wa.dividendYield > 0).length
+  const intlCount = intlItems2.filter((wa) => wa.dividendYield != null && wa.dividendYield > 0).length
+  const allCount  = items.filter(     (wa) => wa.dividendYield != null && wa.dividendYield > 0).length
 
   if (isLoading && items.length === 0) {
     return <div className="p-6"><p className="text-muted-foreground text-sm">Loading...</p></div>
@@ -686,6 +709,29 @@ export default function DashboardPage() {
         </TabsContent>
 
         <TabsContent value="dividend">
+          <div className="grid grid-cols-3 gap-4 pt-4">
+            <Card>
+              <CardContent className="pt-5 pb-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Avg Yield — BR</p>
+                <p className="text-2xl font-bold tabular-nums">{yieldBr.toFixed(2)}%</p>
+                <p className="text-xs text-muted-foreground mt-1">{brCount} asset{brCount !== 1 ? 's' : ''} with yield set</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-5 pb-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Avg Yield — Intl</p>
+                <p className="text-2xl font-bold tabular-nums">{yieldIntl.toFixed(2)}%</p>
+                <p className="text-xs text-muted-foreground mt-1">{intlCount} asset{intlCount !== 1 ? 's' : ''} with yield set</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-5 pb-4">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Avg Yield — General</p>
+                <p className="text-2xl font-bold tabular-nums">{yieldAll.toFixed(2)}%</p>
+                <p className="text-xs text-muted-foreground mt-1">{allCount} asset{allCount !== 1 ? 's' : ''} with yield set</p>
+              </CardContent>
+            </Card>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
             <Card>
               <CardHeader className="pb-2">
@@ -723,12 +769,62 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Dividend Calendar */}
+          {(() => {
+            const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+            const currentMonthIdx = new Date().getMonth()
+            const calRows = Array.from(
+              new Map(
+                items
+                  .filter((wa) => wa.dividendMonths && wa.dividendMonths.length > 0)
+                  .map((wa) => [wa.assetTicket, wa.dividendMonths!])
+              ).entries()
+            ).sort(([a], [b]) => a.localeCompare(b))
+
+            if (calRows.length === 0) return null
+
+            return (
+              <Card className="mt-6">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Dividend Calendar</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2 px-4 font-medium text-muted-foreground w-24">Ticker</th>
+                        {MONTHS.map((m, i) => (
+                          <th key={m} className={`text-center py-2 px-2 font-medium text-muted-foreground${i === currentMonthIdx ? ' bg-primary/10' : ''}`}>{m}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {calRows.map(([ticket, months]) => (
+                        <tr key={ticket} className="border-b last:border-0 hover:bg-muted/30">
+                          <td className="py-2 px-4 font-semibold">{ticket}</td>
+                          {MONTHS.map((m, i) => (
+                            <td key={m} className={`text-center py-2 px-2${i === currentMonthIdx ? ' bg-primary/10' : ''}`}>
+                              {months.includes(m)
+                                ? <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500" />
+                                : null}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </CardContent>
+              </Card>
+            )
+          })()}
         </TabsContent>
 
         <TabsContent value="international">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-            <ChartCard key={`atype-reit-${selectedWalletId ?? 'all'}`} title={`By Asset Type — REIT · R$ ${fmt(totalBrlReit)} / $ ${fmtUsd(totalUsdReit)}`} data={byAssetTypeReit} total={totalBrlReit} />
-            <ChartCard key={`sec-reit-${selectedWalletId ?? 'all'}`}   title={`By Sector — REIT · R$ ${fmt(totalBrlReit)} / $ ${fmtUsd(totalUsdReit)}`}       data={bySectorReit}    total={totalBrlReit} />
+            <ChartCard key={`atype-reit-${selectedWalletId ?? 'all'}`} title={`By Asset Type — REIT · R$ ${fmt(totalBrlReit)} / $ ${fmtUsd(totalUsdReit)}`} data={byAssetTypeReit}   total={totalBrlReit} />
+            <ChartCard key={`sec-reit-${selectedWalletId ?? 'all'}`}   title={`By Sector — REIT · R$ ${fmt(totalBrlReit)} / $ ${fmtUsd(totalUsdReit)}`}        data={bySectorReit}      total={totalBrlReit} />
+            <ChartCard key={`cat-intl-${selectedWalletId ?? 'all'}`}   title={`By Category — Intl · R$ ${fmt(totalBrlIntl)} / $ ${fmtUsd(totalUsdIntl)}`}      data={byCategoryIntl}    total={totalBrlIntl} />
           </div>
         </TabsContent>
       </Tabs>

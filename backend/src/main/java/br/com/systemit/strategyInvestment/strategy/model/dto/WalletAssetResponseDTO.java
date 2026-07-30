@@ -2,6 +2,7 @@ package br.com.systemit.strategyInvestment.strategy.model.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record WalletAssetResponseDTO(
         Integer id,
@@ -20,6 +21,8 @@ public record WalletAssetResponseDTO(
         String incomeType,
         String assetTypeName,
         String indicator,
-        BigDecimal ceilingPrice
+        BigDecimal ceilingPrice,
+        BigDecimal dividendYield,
+        List<String> dividendMonths
 ) {
 }

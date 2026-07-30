@@ -2,12 +2,15 @@ package br.com.systemit.strategyInvestment.strategy.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import br.com.systemit.strategyInvestment.strategy.model.converter.MonthsConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -75,6 +78,13 @@ public class Asset {
 
     @Column(name = "indicator", length = 20)
     private String indicator;
+
+    @Column(name = "dividend_yield", precision = 8, scale = 2)
+    private BigDecimal dividendYield;
+
+    @Convert(converter = MonthsConverter.class)
+    @Column(name = "dividend_months")
+    private List<String> dividendMonths;
 
     @CreatedDate
     @Column(name = "created_at")

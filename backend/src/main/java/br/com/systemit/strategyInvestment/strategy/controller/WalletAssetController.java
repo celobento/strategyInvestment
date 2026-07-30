@@ -96,7 +96,9 @@ public class WalletAssetController {
                 a.getIncomeType() != null ? a.getIncomeType().name() : null,
                 a.getAssetType() != null ? a.getAssetType().getName() : null,
                 a.getIndicator(),
-                a.getCeilingPrice()
+                a.getCeilingPrice(),
+                a.getDividendYield(),
+                a.getDividendMonths()
         );
     }
 }

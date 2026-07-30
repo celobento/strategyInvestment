@@ -20,6 +20,7 @@ import {
   BarChart2,
   Target,
   Layers,
+  Activity,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -48,6 +49,8 @@ const topItems = [
 
 const analysisItems = [
   { label: 'FII', href: '/analysisFii', icon: BarChart2 },
+  { label: 'Ações', href: '/analysisAcoes', icon: Activity },
+  { label: 'REITs', href: '/analysisReits', icon: Building2 },
 ]
 
 const settingsItems = [

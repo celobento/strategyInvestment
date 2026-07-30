@@ -168,6 +168,7 @@ export default function AssetsPage() {
                     <th className="text-left py-3 px-4 font-medium text-muted-foreground">Country</th>
                     <th className="text-left py-3 px-4 font-medium text-muted-foreground">Income Type</th>
                     <th className="text-left py-3 px-4 font-medium text-muted-foreground">Asset Type</th>
+                    <th className="text-right py-3 px-4 font-medium text-muted-foreground">Yield %</th>
                     <th className="text-left py-3 px-4 font-medium text-muted-foreground">Actions</th>
                   </tr>
                 </thead>
@@ -196,6 +197,9 @@ export default function AssetsPage() {
                         ) : '—'}
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">{a.assetType?.name ?? '—'}</td>
+                      <td className="py-3 px-4 text-right tabular-nums">
+                        {a.dividendYield != null ? `${Number(a.dividendYield).toFixed(2)}%` : '—'}
+                      </td>
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" render={<Link href={`/assets/${a.id}/edit`} />}>

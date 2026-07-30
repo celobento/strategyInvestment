@@ -9,6 +9,7 @@ import br.com.systemit.strategyInvestment.strategy.model.Segment;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Schema(name = "SearchAssetResponse")
 public record SearchAssetResponseDTO(
@@ -25,5 +26,7 @@ public record SearchAssetResponseDTO(
         BigDecimal ceilingPrice,
         BigDecimal navEstimated,
         BigDecimal premiumDiscount,
-        String indicator) {
+        String indicator,
+        BigDecimal dividendYield,
+        List<String> dividendMonths) {
 }

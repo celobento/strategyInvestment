@@ -15,6 +15,9 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { updateAsset, getAssets, getAssetTypes, getCategories, getCountries, getSectors, getSegments } from '@/lib/api'
+import { Checkbox } from '@/components/ui/checkbox'
+
+const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
 
 const INCOME_TYPE_ITEMS = [
   { value: 'FIXED', label: 'Fixed Income' },
@@ -31,6 +34,8 @@ const schema = z.object({
   segment: z.coerce.number().int().positive(),
   incomeType: z.enum(['FIXED', 'VARIABLE']).optional(),
   assetTypeId: z.coerce.number().int().positive().optional(),
+  dividendYield: z.string().optional(),
+  dividendMonths: z.array(z.string()).optional(),
 })
 type FormValues = z.infer<typeof schema>
 
@@ -75,6 +80,8 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
         segment: asset.segment?.id,
         incomeType: asset.incomeType,
         assetTypeId: asset.assetType?.id,
+        dividendYield: asset.dividendYield != null ? String(asset.dividendYield) : '',
+        dividendMonths: asset.dividendMonths ?? [],
       })
     }
   }, [asset, reset])
@@ -90,6 +97,8 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
       segment: data.segment,
       incomeType: data.incomeType,
       assetTypeId: data.assetTypeId,
+      dividendYield: data.dividendYield ? parseFloat(data.dividendYield) : null,
+      dividendMonths: data.dividendMonths ?? [],
     }),
     onSuccess: () => {
       toast.success('Asset updated')
@@ -256,6 +265,51 @@ export default function EditAssetPage({ params }: { params: Promise<{ id: string
                 )}
               />
               {errors.assetTypeId && <p className="text-sm text-destructive">{errors.assetTypeId.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dividendYield">Dividend Yield (%)</Label>
+              <Input
+                id="dividendYield"
+                {...register('dividendYield')}
+                placeholder="e.g. 8.45"
+                inputMode="decimal"
+              />
+              {errors.dividendYield && <p className="text-sm text-destructive">{errors.dividendYield.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Dividend Payment Months</Label>
+              <Controller
+                control={control}
+                name="dividendMonths"
+                render={({ field }) => (
+                  <div className="grid grid-cols-4 gap-3 pt-1">
+                    {MONTHS.map((month) => {
+                      const checked = (field.value ?? []).includes(month)
+                      return (
+                        <div key={month} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`month-${month}`}
+                            checked={checked}
+                            onCheckedChange={(val) => {
+                              const current = field.value ?? []
+                              field.onChange(
+                                val
+                                  ? [...current, month]
+                                  : current.filter((m) => m !== month)
+                              )
+                            }}
+                          />
+                          <label htmlFor={`month-${month}`} className="text-sm cursor-pointer select-none">
+                            {month}
+                          </label>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              />
             </div>
 
             <div className="flex gap-3 pt-2">

@@ -2,6 +2,7 @@ package br.com.systemit.strategyInvestment.strategy.service;
 
 import br.com.systemit.strategyInvestment.strategy.model.FiiAnalysis;
 import br.com.systemit.strategyInvestment.strategy.model.dto.FiiSyncStatusDTO;
+import br.com.systemit.strategyInvestment.strategy.repository.AssetRepository;
 import br.com.systemit.strategyInvestment.strategy.repository.FiiAnalysisRepository;
 import br.com.systemit.strategyInvestment.strategy.repository.WalletAssetRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class FiiAnalysisService {
 
     private final FiiAnalysisRepository repository;
     private final WalletAssetRepository walletAssetRepository;
+    private final AssetRepository assetRepository;
 
     // ── Sync state (in-memory, single sync at a time) ────────────────────────
     private final AtomicBoolean syncRunning  = new AtomicBoolean(false);
@@ -78,6 +80,9 @@ public class FiiAnalysisService {
 
             for (String ticket : tickets) {
                 try {
+                    repository.deleteAllByTicket(ticket);
+                    log.info("Deleted existing fii_analysi rows for ticket '{}'", ticket);
+
                     String encoded = URLEncoder.encode(ticket, StandardCharsets.UTF_8);
                     HttpRequest request = HttpRequest.newBuilder()
                             .uri(URI.create(SYNC_URL + encoded))
@@ -87,6 +92,7 @@ public class FiiAnalysisService {
                     if (response.statusCode() >= 200 && response.statusCode() < 300) {
                         syncUpdated.incrementAndGet();
                         log.info("Synced {} — HTTP {}", ticket, response.statusCode());
+                        propagateYieldToAsset(ticket);
                     } else {
                         syncFailed.incrementAndGet();
                         failed.add(ticket);
@@ -107,5 +113,27 @@ public class FiiAnalysisService {
         });
 
         return true;
+    }
+
+    private void propagateYieldToAsset(String ticket) {
+        try {
+            FiiAnalysis fii = repository.findFirstByTicketIgnoreCaseOrderByIdDesc(ticket).orElse(null);
+            if (fii == null) {
+                log.warn("propagateYield: no FiiAnalysis found for ticket '{}'", ticket);
+                return;
+            }
+            if (fii.getDividendYield() == null) {
+                log.warn("propagateYield: dividendYield is null in fii_analysi for ticket '{}'", ticket);
+                return;
+            }
+            int rows = assetRepository.updateDividendYieldByTicket(ticket, fii.getDividendYield());
+            if (rows == 0) {
+                log.warn("propagateYield: no asset matched ticket '{}' — dividend_yield not updated", ticket);
+            } else {
+                log.info("propagateYield: set dividend_yield={} on {} asset row(s) for ticket '{}'", fii.getDividendYield(), rows, ticket);
+            }
+        } catch (Exception e) {
+            log.error("propagateYield: error for ticket '{}': {}", ticket, e.getMessage(), e);
+        }
     }
 }

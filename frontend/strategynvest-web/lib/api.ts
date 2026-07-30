@@ -99,6 +99,8 @@ export const updateAsset = (id: number, data: {
   country: number; category: number; sector: number; segment: number
   incomeType?: string
   assetTypeId?: number
+  dividendYield?: number | null
+  dividendMonths?: string[]
 }) => api.put<Asset>(`/assets/${id}`, data).then((r) => r.data)
 
 export const deleteAsset = (id: number) => api.delete(`/assets/${id}`)
@@ -213,6 +215,26 @@ export const startFiiSync = () =>
 
 export const getFiiSyncStatus = () =>
   api.get<FiiSyncStatus>('/fii-analysis/sync/status').then((r) => r.data)
+
+// ── REITs Analysis ────────────────────────────────────────────────────────────
+export const getReitsAnalysis = () =>
+  api.get<import('./types').ReitsAnalysis[]>('/reits-analysis').then((r) => r.data)
+
+export const startReitsSync = (ticket?: string) =>
+  api.post<FiiSyncStatus>('/reits-analysis/sync', null, { params: ticket ? { ticket } : undefined }).then((r) => r.data)
+
+export const getReitsSyncStatus = () =>
+  api.get<FiiSyncStatus>('/reits-analysis/sync/status').then((r) => r.data)
+
+// ── Acoes Analysis ────────────────────────────────────────────────────────────
+export const getAcoesAnalysis = () =>
+  api.get<import('./types').AcoesAnalysis[]>('/acoes-analysis').then((r) => r.data)
+
+export const startAcoesSync = (ticket?: string) =>
+  api.post<FiiSyncStatus>('/acoes-analysis/sync', null, { params: ticket ? { ticket } : undefined }).then((r) => r.data)
+
+export const getAcoesSyncStatus = () =>
+  api.get<FiiSyncStatus>('/acoes-analysis/sync/status').then((r) => r.data)
 
 // ── Goals ─────────────────────────────────────────────────────────────────────
 export const getGoals = () =>

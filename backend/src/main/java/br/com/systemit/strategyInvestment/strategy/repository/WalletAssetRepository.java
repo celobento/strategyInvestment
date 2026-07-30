@@ -14,4 +14,10 @@ public interface WalletAssetRepository extends JpaRepository<WalletAsset, Intege
 
     @Query("SELECT DISTINCT wa.asset.ticket FROM WalletAsset wa WHERE wa.asset.category.id = 2 ORDER BY wa.asset.ticket ASC")
     List<String> findDistinctFiiTickets();
+
+    @Query("SELECT DISTINCT wa.asset.ticket FROM WalletAsset wa WHERE UPPER(wa.asset.category.name) = 'AÇÕES' AND UPPER(wa.asset.country.acronym) = 'BR' ORDER BY wa.asset.ticket ASC")
+    List<String> findDistinctAcoesTickets();
+
+    @Query("SELECT DISTINCT wa.asset.ticket FROM WalletAsset wa WHERE UPPER(wa.asset.category.name) = 'REIT' ORDER BY wa.asset.ticket ASC")
+    List<String> findDistinctReitTickets();
 }
